@@ -1,0 +1,13 @@
+.login-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.login-container > * {
+    width: 100%;
+}
+
+.button-row button,
+.button-row a {
+  margin-right: 8px;
+}
