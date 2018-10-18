@@ -13,6 +13,8 @@ namespace Server.WebSocketManager
         public WebSocketHandler Handler { get; } 
  
         public WebSocket WebSocket { get; set; } 
+        public string ConnectionId { get; set; }
+        public string ConnectionType { get; set; }
  
         public WebSocketConnection(WebSocketHandler handler) 
         { 

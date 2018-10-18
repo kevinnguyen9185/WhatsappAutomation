@@ -21,11 +21,11 @@ namespace Server.RobotSocket
             {
                 case "Message.Robot.ConnectMessage":
                     var connectMessage = JsonConvert.DeserializeObject<ConnectMessage>(mess.Message);
-                    _logger.LogInformation(connectMessage.RobotStatus.ToString());
+                    //_logger.LogInformation(connectMessage.RobotStatus.ToString());
                     break;
                 case "Message.Robot.DisconnectMessage":
                     var disconnectMessage = JsonConvert.DeserializeObject<DisconnectMessage>(mess.Message);
-                    _logger.LogInformation(disconnectMessage.RobotStatus.ToString());
+                    //_logger.LogInformation(disconnectMessage.RobotStatus.ToString());
                     break;
                 default:
                     break;

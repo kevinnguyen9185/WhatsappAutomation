@@ -17,14 +17,19 @@ namespace Server.RobotSocket
         {
             _logger = new LoggerFactory().AddConsole().CreateLogger<RobotSocketHandler>();
         }
-        protected override int BufferSize { get => 1024 * 4; } 
- 
+        protected override int BufferSize { get => 1024 * 4; }
+
+        public override Task<WebSocketConnection> GetConnectionByIdAsync(string connId)
+        {
+            return Task.FromResult<WebSocketConnection>(Connections.FirstOrDefault(m => ((RobotConnection)m).ConnectionId == connId)); 
+        }
+
         public override async Task<WebSocketConnection> OnConnected(HttpContext context) 
         { 
-            var name = context.Request.Query["RobotId"];
+            var name = context.Request.Query["connId"];
             if (!string.IsNullOrEmpty(name)) 
             { 
-                var connection = Connections.FirstOrDefault(m => ((RobotConnection)m).RobotId == name); 
+                var connection = Connections.FirstOrDefault(m => ((RobotConnection)m).ConnectionId == name); 
  
                 if (connection == null) 
                 { 
@@ -32,7 +37,7 @@ namespace Server.RobotSocket
  
                     connection = new RobotConnection(this) 
                     { 
-                        RobotId = name, 
+                        ConnectionId = name, 
                         WebSocket = webSocket 
                     }; 
  
@@ -53,7 +58,7 @@ namespace Server.RobotSocket
  
                         connection = new RobotConnection(this) 
                         { 
-                            RobotId = name, 
+                            ConnectionId = name, 
                             WebSocket = webSocket 
                         }; 
     

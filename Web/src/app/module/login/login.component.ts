@@ -20,7 +20,9 @@ export class LoginComponent implements OnInit {
 
   doLogin(phoneNo: string) {
     this.robotService.getInstanceStatus(phoneNo).subscribe((result)=>{
-      if(result.data == 'ok'){
+      console.log(result.data);
+      var mess = JSON.parse(result.data);
+      if(mess.Message == 'ok'){
         this.userService.setLoggedIn(true, phoneNo);
         this.router.navigate(['/chatmain']);
       } else {

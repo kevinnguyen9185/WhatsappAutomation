@@ -6,7 +6,7 @@ using Server.WebSocketManager;
 using Server.RobotSocket;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
-using Server.UISocket;
+using Server.ServerSocket;
 
 namespace Server 
 { 
@@ -33,9 +33,9 @@ namespace Server
  
             app.UseWebSockets();
 
-            app.MapWebSocketManager("/RobotSocket", serviceProvider.GetService<RobotSocketHandler>());
+            //app.MapWebSocketManager("/RobotSocket", serviceProvider.GetService<RobotSocketHandler>());
 
-            app.MapWebSocketManager("/UISocket", serviceProvider.GetService<UIHandler>());
+            app.MapWebSocketManager("/ServerSocket", serviceProvider.GetService<ServerSocketHandler>());
  
             app.UseMvcWithDefaultRoute();
         }

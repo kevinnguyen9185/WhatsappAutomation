@@ -15,7 +15,7 @@ export class RobotService {
   }
 
   public connectWs(uiId: string){
-    RobotService.websocket = new WebSocket(`ws://localhost:5000/UISocket?UIId=${uiId}`);
+    RobotService.websocket = new WebSocket(`ws://localhost:5000/ServerSocket?connId=${uiId}`);
   }
 
   public getInstanceStatus(uiId: string): Observable<MessageEvent>{

@@ -19,23 +19,29 @@ namespace Server.WebSocketManager
         public async Task ListenConnection(WebSocketConnection connection) 
         { 
             var buffer = new byte[BufferSize];
+            var fullMessage = "";
  
             while (connection.WebSocket.State == WebSocketState.Open) 
             { 
                 var result = await connection.WebSocket.ReceiveAsync( 
                     buffer: new ArraySegment<byte>(buffer), 
-                    cancellationToken: CancellationToken.None); 
+                    cancellationToken: CancellationToken.None);
  
                 if (result.MessageType == WebSocketMessageType.Text) 
                 { 
                     var message = Encoding.UTF8.GetString(buffer, 0, result.Count); 
- 
-                    await connection.ReceiveAsync(message); 
+                    fullMessage += message;
                 }
                 else if (result.MessageType == WebSocketMessageType.Close) 
                 { 
                     await OnDisconnected(connection); 
                 }
+
+                if(result.EndOfMessage)
+                {
+                    await connection.ReceiveAsync(fullMessage); 
+                    fullMessage = "";
+                }   
             }
         } 
  
@@ -53,5 +59,7 @@ namespace Server.WebSocketManager
         } 
  
         public abstract Task<WebSocketConnection> OnConnected(HttpContext context); 
+
+        public abstract Task<WebSocketConnection> GetConnectionByIdAsync(string connId);
     } 
 }

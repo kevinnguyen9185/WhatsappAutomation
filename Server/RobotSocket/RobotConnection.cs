@@ -17,16 +17,16 @@ namespace Server.RobotSocket
         {
             _logger = new LoggerFactory().AddConsole().CreateLogger<RobotConnection>();
             _messHandler = new MessageHandler();
-        } 
- 
-        public string RobotId { get; set; }
+        }
+
+        public string ServerConnectionId { get; set; }
  
         public override async Task ReceiveAsync(string message) 
         { 
             try
             {
                 var receiveMessage = JsonConvert.DeserializeObject<SendMessage>(message); 
-                var receiver = Handler.Connections.FirstOrDefault(m => ((RobotConnection)m).RobotId == receiveMessage.Sender); 
+                var receiver = Handler.Connections.FirstOrDefault(m => ((RobotConnection)m).ConnectionId == receiveMessage.Sender); 
     
                 if (receiver != null)
                 {
@@ -36,7 +36,7 @@ namespace Server.RobotSocket
                 { 
                     var sendMessage = JsonConvert.SerializeObject(new SendMessage 
                     { 
-                        Sender = RobotId, 
+                        Sender = ConnectionId, 
                         MessageType = "ErrorMessage",
                         Message = "Can not seed to " + receiveMessage.Sender 
                     }); 
