@@ -62,7 +62,7 @@ namespace Client.Automation
             return lstContact;
         }
 
-        public async Task<bool> SendWhatsappMess(string contactName, string chatMessage)
+        public async Task<bool> SendWhatsappMess(string contactName, string chatMessage, string filePath = "")
         {
             try
             {
@@ -75,23 +75,44 @@ namespace Client.Automation
                     {
                         contactElm.Click();
                         await Task.Delay(500);
-                        var chatboxElm = Driver.FindElementByCssSelector("div[class='_2S1VP copyable-text selectable-text']");
-                        var fileDropArea = Driver.FindElementByCssSelector("div[class='_2nmDZ']");
-                        //Append text
-                        chatboxElm.SendKeys(chatMessage);
-                        await Task.Delay(500);
-                        //Append image
-                        await DropFile(fileDropArea, "/Users/kevinng/Desktop/Test.png");
-                        await DropFile(fileDropArea, "/Users/kevinng/Desktop/Test.png");
-                        await DropFile(fileDropArea, "/Users/kevinng/Desktop/Test.png");
-                        await Task.Delay(1000);
-                        chatboxElm.SendKeys(Keys.Return);
+                        if(filePath!="")
+                        {
+                            //Append image
+                            await OpenLocalFile(filePath);
+                            await Task.Delay(1000);
+                            var chatboxElm = Driver.FindElementByCssSelector("div[class='_2S1VP copyable-text selectable-text']");
+                            Console.WriteLine("Chat box found");
+                            chatboxElm.SendKeys(chatMessage);
+                            //_3hV1n yavlE
+                            var sendWithImgBut = Driver.FindElementByCssSelector("div[class='_3hV1n yavlE']");
+                            Console.WriteLine("Found button and click");
+                            sendWithImgBut.Click();
+                        }
+                        else
+                        {
+                            var chatboxElm = Driver.FindElementByCssSelector("div[class='_2S1VP copyable-text selectable-text']");
+                            //Append text
+                            chatboxElm.SendKeys(chatMessage);
+                            chatboxElm.SendKeys(Keys.Return);
+                        }
                         return true;
                     }
                 }
             }
             catch{}
             return false;
+        }
+
+        private async Task OpenLocalFile(string filePath)
+        {
+            try
+            {
+                var attachButton = Driver.FindElementByCssSelector("div[title='Attach']");
+                attachButton.Click();
+                var inputFile = Driver.FindElementByCssSelector("input[accept='image/*,video/mp4,video/3gpp']");
+                inputFile.SendKeys(filePath);
+            }
+            catch{}
         }
     }
 }

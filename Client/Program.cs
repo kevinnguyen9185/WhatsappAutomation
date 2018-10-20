@@ -43,7 +43,7 @@ namespace Client
                 {
                     var contacts = _chatPage.GetContactList();
                     var tobyContact = contacts.FirstOrDefault(c => c=="Toby");
-                    await _chatPage.SendWhatsappMess(tobyContact, $"test thoi Bi oi {DateTime.Now.Ticks.ToString()}");
+                    await _chatPage.SendWhatsappMess(tobyContact, $"test thoi Bi oi {DateTime.Now.Ticks.ToString()}", "/Users/kevinng/Desktop/Test.png");
                     break;
                 }
                 await Task.Delay(1000);
