@@ -1,24 +1,45 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Support.UI;
 
 namespace Client.Automation
 {
-    public class LandingPage
+    public class LandingPage : Page
     {
-        private readonly ChromeDriver _driver;
-        public LandingPage()
+        public string QRCode 
+        { 
+            get
+            {
+                return GetQRCodeImage();
+            }
+        }
+        public LandingPage(string title)
         {
-            _driver = Bootstrap.ChromeDriver;
-            _driver.Url = "https://web.whatsapp.com/";
-            _driver.Navigate();
+            PageTitle = title;
+            GoTo("https://web.whatsapp.com/");
+            WaitForLoad();
         }
 
         public string GetQRCodeImage()
         {
-            var imageContent = _driver.FindElementByCssSelector("img[alt='Scan me!']").GetAttribute("src");
-            return imageContent;
+            try
+            {
+                string imageContent = "";
+                var elm = Driver.FindElementByCssSelector("img[alt='Scan me!']");
+                if (elm != null)
+                {
+                    imageContent = elm.GetAttribute("src");
+                }
+                return imageContent;
+            }
+            catch
+            {
+                return "";
+            }
         }
     }
 }

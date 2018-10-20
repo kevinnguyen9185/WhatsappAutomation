@@ -6,6 +6,13 @@ namespace Server.Business
     public class PairController
     {
         private static List<PairRobotAndUI> _pairList;
+        public static List<PairRobotAndUI> PairList 
+        { 
+            get 
+            {
+                return _pairList;
+            }
+        }
         public static bool Pair(string source, string destination)
         {
             if(_pairList == null)
@@ -68,6 +75,26 @@ namespace Server.Business
             else 
             {
                 return false;
+            }
+        }
+
+        public static string UnPairByConnectionId(string connId)
+        {
+            var pairSource = FindPairBySource(connId);
+            var r1 = UnPair(pairSource);
+            var pairDestionation = FindPairByDestination(connId);
+            var r2 = UnPair(pairDestionation);
+            if (r1)
+            {
+                return pairSource.DestinationId;
+            }
+            else if (r2)
+            {
+                return pairDestionation.SourceId;
+            }
+            else 
+            {
+                return null;
             }
         }
     }

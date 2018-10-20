@@ -17,7 +17,7 @@ namespace Server.WebSocketManager
         public WebSocketMiddleware(RequestDelegate next, WebSocketHandler webSocketHandler) 
         { 
             _next = next; 
-            _webSocketHandler = webSocketHandler; 
+            _webSocketHandler = webSocketHandler;
         } 
  
         public async Task Invoke(HttpContext context) 

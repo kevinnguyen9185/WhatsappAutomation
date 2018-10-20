@@ -22,7 +22,7 @@ namespace Server.WebSocketManager
         } 
  
         public virtual async Task SendMessageAsync(string message) 
-        { 
+        {
             if (WebSocket.State != WebSocketState.Open) return; 
             var arr = Encoding.UTF8.GetBytes(message); 
  
@@ -31,7 +31,7 @@ namespace Server.WebSocketManager
                     offset: 0, 
                     count: arr.Length); 
  
-            await WebSocket.SendAsync( 
+            await WebSocket.SendAsync(
                 buffer: buffer, 
                 messageType: WebSocketMessageType.Text, 
                 endOfMessage: true, 

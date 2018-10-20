@@ -4,7 +4,6 @@ using Message;
 using Message.Robot;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Logging;
-using Server.RobotSocket;
 using System.Net.WebSockets;
 using Message.UI;
 using Server.WebSocketManager;
@@ -25,6 +24,7 @@ namespace Server.ServerSocket
 
         public async Task ProcessMessage(SendMessage mess)
         {
+            var messageNotProcessed = false;
             _currentConn = (ServerConnection)_serverSocketHandler.Connections.Find(p=>((ServerConnection)p).ConnectionId == mess.Sender);
             switch(mess.MessageType)
             {
@@ -35,6 +35,10 @@ namespace Server.ServerSocket
                         _logger.LogInformation($"Get QR code for {mess.Sender}");
                         await robotConn.SendMessageAsync(Message.Utils.CreateSendMessage<GetQRCodeMessage>(robotConn.ConnectionId, new GetQRCodeMessage()));
                     }
+                    else
+                    {
+                        messageNotProcessed = true;
+                    }
                     break;
                 case "GetQRCodeResponseMessage":
                     var qrSource = await GetSourceConnectionFromDestination(mess.Sender);
@@ -44,6 +48,10 @@ namespace Server.ServerSocket
                         await qrSource.SendMessageAsync(Message.Utils.CreateSendMessage<GetQRCodeResponseMessage>(qrSource.ConnectionId, new GetQRCodeResponseMessage(){
                             QRCodeBase64 = mess.Message
                         }));
+                    }
+                    else
+                    {
+                        messageNotProcessed = true;
                     }
                     break;
                 case "PairRobotUIMessage":
@@ -69,7 +77,11 @@ namespace Server.ServerSocket
                             break;
                         }
                     }
-                    await _currentConn.SendMessageAsync(Message.Utils.CreateSendMessage<ErrorMessage>(mess.Sender, "Pair failed"));
+                    else
+                    {
+                        messageNotProcessed = true;
+                    }
+                    await _currentConn.SendMessageAsync(Message.Utils.CreateSendMessage<ErrorMessage>(mess.Sender, new ErrorMessage(){Message="pair failed"}));
                     break;
                 case "UnPairRobotUIMessage":
                     var unpairMess = JsonConvert.DeserializeObject<UnPairRobotUIMessage>(mess.Message);
@@ -79,20 +91,31 @@ namespace Server.ServerSocket
                     _logger.LogInformation($"UnPair between {unpairMess.UIId} and {unpairMess.RobotId} successfully");
                     await _currentConn.SendMessageAsync(Message.Utils.CreateSendMessage<UnPairRobotUIResponseMessage>(mess.Sender, result));
                     break;
+                case "LoginStatusResponseMessage":
+                    var checkSttSource = await GetSourceConnectionFromDestination(mess.Sender);
+                    if (checkSttSource != null && checkSttSource.WebSocket.State == WebSocketState.Open)
+                    {
+                        await checkSttSource.SendMessageAsync(JsonConvert.SerializeObject(mess));
+                    }
+                    break;
                 default:
                     break;
+            }
+            if(messageNotProcessed)
+            {
+                await _currentConn.SendMessageAsync(Utils.CreateSendMessage<ErrorMessage>(_currentConn.ConnectionId, new ErrorMessage(){Message= "Message not processed"}));
             }
         }
 
         private async Task<ServerConnection> GetSourceConnectionFromDestination(string sender)
         {
             var pair = PairController.FindPairByDestination(sender);
-            var conn = (ServerConnection)await _serverSocketHandler.GetConnectionByIdAsync(pair.SourceId);
-            while (conn.WebSocket.State != WebSocketState.Open && pair != null)
+            var conn = pair!=null?(ServerConnection)await _serverSocketHandler.GetConnectionByIdAsync(pair.SourceId):null;
+            while (conn!=null && conn.WebSocket.State != WebSocketState.Open && pair != null)
             {
                 PairController.UnPair(pair);
                 pair = PairController.FindPairByDestination(sender);
-                conn = (ServerConnection)await _serverSocketHandler.GetConnectionByIdAsync(pair.SourceId);
+                conn = pair!=null?(ServerConnection)await _serverSocketHandler.GetConnectionByIdAsync(pair.SourceId):null;
             }
             return conn;
         }
@@ -100,12 +123,12 @@ namespace Server.ServerSocket
         private async Task<ServerConnection> GetDestinationConnectionFromSource(string sender)
         {
             var pair = PairController.FindPairBySource(sender);
-            var conn = (ServerConnection)await _serverSocketHandler.GetConnectionByIdAsync(pair.DestinationId);
-            while (conn.WebSocket.State != WebSocketState.Open && pair != null)
+            var conn = pair!=null?(ServerConnection)await _serverSocketHandler.GetConnectionByIdAsync(pair.DestinationId):null;
+            while (conn!=null && conn.WebSocket.State != WebSocketState.Open && pair != null)
             {
                 PairController.UnPair(pair);
                 pair = PairController.FindPairBySource(sender);
-                conn = (ServerConnection)await _serverSocketHandler.GetConnectionByIdAsync(pair.DestinationId);
+                conn = pair!=null?(ServerConnection)await _serverSocketHandler.GetConnectionByIdAsync(pair.DestinationId):null;
             }
             return conn;
         }

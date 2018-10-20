@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { RobotService } from 'src/app/core/services/robot.service';
+import { UserService } from 'src/app/core/services/user.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-chatmain',
@@ -9,7 +11,8 @@ import { RobotService } from 'src/app/core/services/robot.service';
 export class ChatmainComponent implements OnInit {
   public imageData:String = '';
 
-  constructor(private robotService: RobotService) {
+  constructor(private robotService: RobotService,
+    private userService: UserService) {
     this.robotService.getInstanceStatus(localStorage.getItem('phoneno')).subscribe(result=>{
       console.log(result.data);
       var mess = JSON.parse(result.data);
@@ -21,7 +24,8 @@ export class ChatmainComponent implements OnInit {
           console.log(robotConnId);
           break;
         case "ErrorMessage":
-          console.log(mess.Message);
+          var errMess = JSON.parse(mess.Message);
+          this.ProcessErrorMessage(errMess.Message);
           break;
         case "GetQRCodeResponseMessage":
           var qrObj = JSON.parse(mess.Message);
@@ -34,6 +38,17 @@ export class ChatmainComponent implements OnInit {
   }
 
   ngOnInit() {
+
+  }
+
+  private ProcessErrorMessage(mess:string){
+    switch (mess){
+      case "orphaned":
+        this.userService.logOut();
+        break;
+      default:
+        break;
+    }
   }
 
   public getQRCode(){

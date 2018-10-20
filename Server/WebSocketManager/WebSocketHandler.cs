@@ -37,7 +37,7 @@ namespace Server.WebSocketManager
                     await OnDisconnected(connection); 
                 }
 
-                if(result.EndOfMessage)
+                if(result.EndOfMessage && connection.WebSocket.State == WebSocketState.Open)
                 {
                     await connection.ReceiveAsync(fullMessage); 
                     fullMessage = "";
@@ -46,7 +46,7 @@ namespace Server.WebSocketManager
         } 
  
         public virtual async Task OnDisconnected(WebSocketConnection connection) 
-        { 
+        {
             if (connection != null) 
             { 
                 _connections.Remove(connection); 
@@ -59,6 +59,8 @@ namespace Server.WebSocketManager
         } 
  
         public abstract Task<WebSocketConnection> OnConnected(HttpContext context); 
+
+        public abstract Task ClientHealthCheck(CancellationToken cancellationToken);
 
         public abstract Task<WebSocketConnection> GetConnectionByIdAsync(string connId);
     } 

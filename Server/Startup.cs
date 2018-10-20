@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Server.WebSocketManager;
-using Server.RobotSocket;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Server.ServerSocket;
