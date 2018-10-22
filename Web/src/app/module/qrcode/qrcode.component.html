@@ -1,0 +1,14 @@
+<mat-card class="qrcode-card">
+  <mat-card-header>
+    <mat-card-title>{{guideTitle}}</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <div fxLayout="column" fxLayoutAlign="center center">
+      <img [src]="imageData" class="qrcode_img">
+      <span><i>(If the QR does not show, click Refresh button)</i></span>
+    </div>
+  </mat-card-content>
+  <mat-card-actions>
+    <button mat-button click="refreshQrCode()">REFRESH</button>
+  </mat-card-actions>
+</mat-card>

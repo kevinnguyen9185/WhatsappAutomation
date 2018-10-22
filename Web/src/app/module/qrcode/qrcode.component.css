@@ -1,0 +1,9 @@
+.qrcode-card {
+    max-width: 400px;
+  }
+
+.qrcode_img {
+    width:264px;
+    height:264px;
+    border:1px;
+}

@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 
@@ -28,6 +29,8 @@ namespace Client.Automation
         {
             try
             {
+                this.RefreshPage();
+                WaitForElementExisted("img[alt='Scan me!']");
                 string imageContent = "";
                 var elm = Driver.FindElementByCssSelector("img[alt='Scan me!']");
                 if (elm != null)
@@ -36,8 +39,9 @@ namespace Client.Automation
                 }
                 return imageContent;
             }
-            catch
+            catch(Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return "";
             }
         }

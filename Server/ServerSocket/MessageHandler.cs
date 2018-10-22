@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using Microsoft.Extensions.Logging;
 using System.Net.WebSockets;
 using Message.UI;
+using Message.Robot;
 using Server.WebSocketManager;
 using Server.Business;
 
@@ -55,33 +56,52 @@ namespace Server.ServerSocket
                     }
                     break;
                 case "PairRobotUIMessage":
-                    var freeRobot = (ServerConnection)_serverSocketHandler.Connections.Find(p => {
-                        var robot = (ServerConnection)p;
-                        return robot.ConnectionType == "robot" 
-                        && PairController.FindPairByDestination(robot.ConnectionId)==null
-                        && robot.WebSocket.State == WebSocketState.Open;
-                    });
-                    if (freeRobot != null && _currentConn != null 
-                        && freeRobot.WebSocket.State == WebSocketState.Open && _currentConn.WebSocket.State == WebSocketState.Open)
+                    //Check existing
+                    var existingPair = PairController.FindPairBySource(mess.Sender);
+                    if(existingPair!=null)
                     {
-                        var pairResult = PairController.Pair(mess.Sender, freeRobot.ConnectionId);
-                        if (pairResult)
+                        var existingDesConn = (ServerConnection)_serverSocketHandler.Connections.Find(p=>p.ConnectionId == existingPair.DestinationId);
+                        if(existingDesConn!=null && existingDesConn.WebSocket.State == WebSocketState.Open)
                         {
-                            _logger.LogInformation($"Pair Robot UI {mess.Sender}");
+                            _logger.LogInformation($"Pair existing Robot UI {mess.Sender}-{existingPair.DestinationId}");
                             await _currentConn.SendMessageAsync(Message.Utils.CreateSendMessage<PairRobotUIResponseMessage>(
                                 mess.Sender, 
                                 new PairRobotUIResponseMessage(){
-                                    RobotConnId = freeRobot.ConnectionId
+                                    RobotConnId = existingPair.DestinationId
                                 })
                             );
-                            break;
                         }
                     }
-                    else
-                    {
-                        messageNotProcessed = true;
+                    else {
+                        var freeRobot = (ServerConnection)_serverSocketHandler.Connections.Find(p => {
+                            var robot = (ServerConnection)p;
+                            return robot.ConnectionType == "robot" 
+                            && PairController.FindPairByDestination(robot.ConnectionId)==null
+                            && robot.WebSocket.State == WebSocketState.Open;
+                        });
+                        if (freeRobot != null && _currentConn != null 
+                            && freeRobot.WebSocket.State == WebSocketState.Open && _currentConn.WebSocket.State == WebSocketState.Open)
+                        {
+                            var pairResult = PairController.Pair(mess.Sender, freeRobot.ConnectionId);
+                            if (pairResult)
+                            {
+                                _logger.LogInformation($"Pair Robot UI {mess.Sender}-{freeRobot.ConnectionId}");
+                                await _currentConn.SendMessageAsync(Message.Utils.CreateSendMessage<PairRobotUIResponseMessage>(
+                                    mess.Sender, 
+                                    new PairRobotUIResponseMessage(){
+                                        RobotConnId = freeRobot.ConnectionId
+                                    })
+                                );
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            messageNotProcessed = true;
+                        }
+                        await _currentConn.SendMessageAsync(Message.Utils.CreateSendMessage<ErrorMessage>(mess.Sender, new ErrorMessage(){Message="pair failed"}));
                     }
-                    await _currentConn.SendMessageAsync(Message.Utils.CreateSendMessage<ErrorMessage>(mess.Sender, new ErrorMessage(){Message="pair failed"}));
+                    
                     break;
                 case "UnPairRobotUIMessage":
                     var unpairMess = JsonConvert.DeserializeObject<UnPairRobotUIMessage>(mess.Message);
@@ -96,6 +116,61 @@ namespace Server.ServerSocket
                     if (checkSttSource != null && checkSttSource.WebSocket.State == WebSocketState.Open)
                     {
                         await checkSttSource.SendMessageAsync(JsonConvert.SerializeObject(mess));
+                    }
+                    break;
+                case "ContactListMessage":
+                    var contactRobotConn = await GetDestinationConnectionFromSource(mess.Sender);
+                    if (contactRobotConn != null && contactRobotConn.WebSocket.State == WebSocketState.Open)
+                    {
+                        _logger.LogInformation($"Get contact list for {mess.Sender}");
+                        await contactRobotConn.SendMessageAsync(Message.Utils.CreateSendMessage<ContactListMessage>(contactRobotConn.ConnectionId, new ContactListMessage()));
+                    }
+                    else
+                    {
+                        messageNotProcessed = true;
+                    }
+                    break;
+                case "ContactListResponseMessage":
+                    var contactSource = await GetSourceConnectionFromDestination(mess.Sender);
+                    if (contactSource != null && contactSource.WebSocket.State == WebSocketState.Open)
+                    {
+                        _logger.LogInformation($"Send contact list back to UI from robot {mess.Sender}");
+                        await contactSource.SendMessageAsync(Message.Utils.CreateSendMessage<ContactListResponseMessage>(
+                            contactSource.ConnectionId, 
+                            JsonConvert.DeserializeObject<ContactListResponseMessage>(mess.Message)));
+                    }
+                    else
+                    {
+                        messageNotProcessed = true;
+                    }
+                    break;
+                case "SendChatMessage":
+                    var chatMessRobotConn = await GetDestinationConnectionFromSource(mess.Sender);
+                    if (chatMessRobotConn != null && chatMessRobotConn.WebSocket.State == WebSocketState.Open)
+                    {
+                        _logger.LogInformation($"Get contact list for {mess.Sender}");
+                        await chatMessRobotConn.SendMessageAsync(Message.Utils.CreateSendMessage<SendChatMessage>(
+                            chatMessRobotConn.ConnectionId, 
+                            JsonConvert.DeserializeObject<SendChatMessage>(mess.Message)
+                        ));
+                    }
+                    else
+                    {
+                        messageNotProcessed = true;
+                    }
+                    break;
+                case "SendChatResponseMessage":
+                    var chatMessSource = await GetSourceConnectionFromDestination(mess.Sender);
+                    if (chatMessSource != null && chatMessSource.WebSocket.State == WebSocketState.Open)
+                    {
+                        _logger.LogInformation($"Send contact list back to UI from robot {mess.Sender}");
+                        await chatMessSource.SendMessageAsync(Message.Utils.CreateSendMessage<SendChatResponseMessage>(
+                            chatMessSource.ConnectionId, 
+                            JsonConvert.DeserializeObject<SendChatResponseMessage>(mess.Message)));
+                    }
+                    else
+                    {
+                        messageNotProcessed = true;
                     }
                     break;
                 default:

@@ -48,6 +48,12 @@ namespace Client.Automation
 				.Until(driver => element.Displayed);
 		}
 
+        public void WaitForElementExisted(string cssSelector)
+		{
+			Wait()
+				.Until(ExpectedConditions.ElementExists(By.CssSelector(cssSelector)));
+		}
+
         public void WaitForJquery()
 		{
 			Wait()
@@ -64,6 +70,7 @@ namespace Client.Automation
 		{
 			_driver.Url = _driver.Url;
 			_driver.Navigate();
+            WaitForLoad();
 		}
 
         public WebDriverWait Wait(int wait = 30, IList<Type> ignoreExceptionTypes = null)
