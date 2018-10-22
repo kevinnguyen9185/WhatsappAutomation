@@ -4,14 +4,14 @@
 > 
 > Whatsapp still do not have API for automation which makes it is extremely hard for people to do their businesses
 > 
-> This is still under development. The next release will be a deployable version
+> This is still under development and can run only locally. The next release will be a deployable version
 
 ## Install
 
 ```
-Run server
-Run client
-Run Web
+Run server (Dotnet core)
+Run client (Dotnet core)
+Run Web (Angular 6)
 ```
 
 ## Usage
