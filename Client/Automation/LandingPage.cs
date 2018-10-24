@@ -29,10 +29,11 @@ namespace Client.Automation
         {
             try
             {
+                
                 this.RefreshPage();
                 WaitForElementExisted("img[alt='Scan me!']");
                 string imageContent = "";
-                var elm = Driver.FindElementByCssSelector("img[alt='Scan me!']");
+                var elm = Driver.FindElement(By.CssSelector("img[alt='Scan me!']"));
                 if (elm != null)
                 {
                     imageContent = elm.GetAttribute("src");

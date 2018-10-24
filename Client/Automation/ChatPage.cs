@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Remote;
 using OpenQA.Selenium.Support.UI;
 
 namespace Client.Automation
@@ -28,7 +29,7 @@ namespace Client.Automation
         {
             try
             {
-                var elm = Driver.FindElementByCssSelector("span[data-icon]");
+                var elm = Driver.FindElement(By.CssSelector("span[data-icon]"));
                 return elm != null;
             }
             catch(NoSuchElementException ex)
@@ -42,7 +43,7 @@ namespace Client.Automation
             List<string> lstContact = new List<string>();
             try
             {
-                var contactList = Driver.FindElementsByCssSelector("div[class='_2wP_Y']");
+                var contactList = Driver.FindElements(By.CssSelector("div[class='_2wP_Y']"));
                 for (int i = 0;i<contactList.Count;i++)
                 {
                     var contactElm = contactList[i];
@@ -66,7 +67,7 @@ namespace Client.Automation
         {
             try
             {
-                var contactList = Driver.FindElementsByCssSelector("div[class='_2wP_Y']");
+                var contactList = Driver.FindElements(By.CssSelector("div[class='_2wP_Y']"));
                 for (int i = 0;i<contactList.Count;i++)
                 {
                     var contactElm = contactList[i];
@@ -75,6 +76,8 @@ namespace Client.Automation
                     {
                         try
                         {
+                            contactElm.Click();
+                            await Task.Delay(500);
                             contactElm.Click();
                             await Task.Delay(500);
                             if(fileContents.Length > 0)
@@ -89,53 +92,71 @@ namespace Client.Automation
                                 }
                                 //Append image
                                 await OpenLocalFile(filePath.ToArray());
-                                await Task.Delay(1000);
-                                var chatboxElm = Driver.FindElementByCssSelector("div[class='_2S1VP copyable-text selectable-text']");
+                                await Task.Delay(500);
+                                var chatboxElm = Driver.FindElement(By.CssSelector("div[class='_2S1VP copyable-text selectable-text']"));
                                 //Console.WriteLine("Chat box found");
+                                chatboxElm.SendKeys(Keys.Enter);
+                                await Task.Delay(2000);
+                                chatboxElm = Driver.FindElement(By.CssSelector("div[class='_2S1VP copyable-text selectable-text']"));
                                 chatboxElm.SendKeys(chatMessage);
+                                await Task.Delay(500);
+                                chatboxElm.SendKeys(Keys.Enter);
                                 //_3hV1n yavlE
-                                var sendWithImgBut = Driver.FindElementByCssSelector("div[class='_3hV1n yavlE']");
-                                //Console.WriteLine("Found button and click");
-                                sendWithImgBut.Click();
-                                await Task.Delay(5000);
+                                // var sendWithImgBut = Driver.FindElementByCssSelector("div[class='_3hV1n yavlE']");
+                                // //Console.WriteLine("Found button and click");
+                                // sendWithImgBut.Click();
+                                //Driver.GetScreenshot().SaveAsFile($"/Users/kevinng/Ansarada/Selenium_docker/Chuanbigui_{Guid.NewGuid().ToString()}.png",ScreenshotImageFormat.Png);
+                                
                             }
                             else
                             {
-                                var chatboxElm = Driver.FindElementByCssSelector("div[class='_2S1VP copyable-text selectable-text']");
+                                var chatboxElm = Driver.FindElement(By.CssSelector("div[class='_2S1VP copyable-text selectable-text']"));
                                 //Append text
                                 chatboxElm.SendKeys(chatMessage);
                                 chatboxElm.SendKeys(Keys.Return);
                             }
                             return true;
                         }
-                        catch
+                        catch (Exception ex)
                         {
+                            Console.WriteLine(ex.Message);
                             return false;
                         }
                     }
                 }
             }
-            catch{}
+            catch(Exception ex){
+                Console.WriteLine(ex.Message);
+            }
             return false;
         }
 
         private async Task<string> SaveBase64ToLocal(string base64Img)
         {
-            String path = Path.GetTempPath();
+            String hostpath = Path.Combine(System.Environment.GetEnvironmentVariable("SEL_SHARED_FOLDER"), "robot_images");
+            String dockerpath = "/home/seluser";
 
             //Check if directory exist
-            if (!System.IO.Directory.Exists(path))
+            if (!System.IO.Directory.Exists(hostpath))
             {
-                System.IO.Directory.CreateDirectory(path); //Create directory if it doesn't exist
+                System.IO.Directory.CreateDirectory(hostpath); //Create directory if it doesn't exist
             }
 
-            var imgPath = Path.Combine(path, $"{Guid.NewGuid().ToString()}.png");
+            var imgFileName = $"{Guid.NewGuid().ToString()}.png";
+            var imgPath = Path.Combine(hostpath, imgFileName);
 
             byte[] imageBytes = Convert.FromBase64String(base64Img);
 
             File.WriteAllBytes(imgPath, imageBytes);
 
-            return imgPath;
+            if (IsRemoteDriver)
+            {
+                return Path.Combine(dockerpath, imgFileName);
+            }
+            else
+            {
+                return imgPath;
+            }
         }
 
         private async Task OpenLocalFile(string[] filePath)
@@ -154,13 +175,30 @@ namespace Client.Automation
                         inputs += filePath[i];
                     }
                 }
-                Console.WriteLine(inputs);
-                var attachButton = Driver.FindElementByCssSelector("div[title='Attach']");
+                //Console.WriteLine(inputs);
+                var attachButton = Driver.FindElement(By.CssSelector("div[title='Attach']"));
                 attachButton.Click();
-                var inputFile = Driver.FindElementByCssSelector("input[accept='image/*,video/mp4,video/3gpp']");
+                await Task.Delay(1000);
+                if(IsRemoteDriver)
+                {
+                    //Console.WriteLine("Using remote");
+                    var allowsDetection = Driver as IAllowsFileDetection;
+                    if(allowsDetection!=null)
+                    {
+                        allowsDetection.FileDetector = new LocalFileDetector();
+                        //Console.WriteLine("Set allow detection");
+                    }
+                }
+                var inputFile = Driver.FindElement(By.CssSelector("input[accept='image/*,video/mp4,video/3gpp']"));
+                //Console.WriteLine(inputFile.TagName);
                 inputFile.SendKeys(inputs);
+                //inputFile.SendKeys("/home/seluser/2ngo-thanh-van.jpg");
+                ((RemoteWebDriver)Driver).GetScreenshot().SaveAsFile($"/Users/kevinng/Ansarada/Selenium_docker/Draghinh_{Guid.NewGuid().ToString()}.png",ScreenshotImageFormat.Png);
             }
-            catch{}
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
     }
 }

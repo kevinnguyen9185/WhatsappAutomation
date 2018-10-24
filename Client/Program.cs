@@ -20,8 +20,24 @@ namespace Client
         private static LandingPage _langdingPage;
         private static ChatPage _chatPage;
         private static string _robotConnId = Guid.NewGuid().ToString();
+        private static readonly AutoResetEvent _closing = new AutoResetEvent(false);
         static async Task Main(string[] args)
         {
+            //Handle Ctrl C
+            Console.CancelKeyPress += new ConsoleCancelEventHandler((sender, e)=>{
+                Bootstrap.ChromeDriver.Quit();
+                _cts.Cancel();
+                Console.WriteLine("Quit the driver then close...");
+                _closing.Set();
+            });
+            //Handle global exception
+            System.AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler((sender, e)=>{
+                Console.WriteLine(e.ExceptionObject.ToString());
+                _cts.Cancel();
+                Console.WriteLine("Quit the driver then close...");
+                _closing.Set();
+            });
+            //Main logic goes here
             _langdingPage = new LandingPage("WhatsApp");
             _chatPage = new ChatPage("WhatsApp");
             Console.WriteLine("Client started...");
@@ -30,9 +46,6 @@ namespace Client
             var tReadMessage = ReadMessage(_cts.Token);
             var tCheckLoginStt = CheckLoginStatus(_cts.Token);
             await Task.WhenAll(tReadMessage, tCheckLoginStt);
-            //await Test();
-            //Console.ReadLine();
-            Bootstrap.ChromeDriver.Dispose();
         }
 
         private static async Task Test()

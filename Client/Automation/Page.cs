@@ -19,11 +19,15 @@ namespace Client.Automation
         {
             _driver = Bootstrap.ChromeDriver;
         }
-        private readonly ChromeDriver _driver;
+
+        public bool IsRemoteDriver { get {
+            return Driver.GetType().FullName == typeof(RemoteWebDriver).FullName;
+        }}
+        private readonly IWebDriver _driver;
 
         public string PageTitle { get; set; }
 
-        public ChromeDriver Driver { get {return _driver;} }
+        public IWebDriver Driver { get {return _driver;} }
         public IJavaScriptExecutor JavaScriptExecutor
 		{
 			get { return (IJavaScriptExecutor) _driver; }
@@ -48,9 +52,9 @@ namespace Client.Automation
 				.Until(driver => element.Displayed);
 		}
 
-        public void WaitForElementExisted(string cssSelector)
+        public IWebElement WaitForElementExisted(string cssSelector)
 		{
-			Wait()
+			return Wait()
 				.Until(ExpectedConditions.ElementExists(By.CssSelector(cssSelector)));
 		}
 
