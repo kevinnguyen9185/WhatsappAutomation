@@ -18,9 +18,9 @@ export class QrcodeComponent implements OnInit, OnDestroy {
   
   constructor(private robotService: RobotService) { 
     this.qrImageSub = this.robotService.QrImageResult$.subscribe(result => {
-      if (result!=''){
-        this.imageData = result;
-        clearInterval(this.qrTimer);
+      if (result){
+        var qrcode = JSON.parse(result)
+        this.imageData = qrcode.QRCodeBase64;
       }
     });
     this.isRobotLoginSub = this.robotService.RobotLoginStatusResult$.subscribe(result=>{
@@ -53,18 +53,6 @@ export class QrcodeComponent implements OnInit, OnDestroy {
   }
 
   private getQRCode(){
-    this.robotService.sendMessage(JSON.stringify(<SendMessage>{
-      Sender : localStorage.getItem('phoneno'),
-      MessageType : 'GetQRCodeMessage',
-      Message : '{}'
-    }));
+    this.robotService.sendMessage(<any>{}, 'GetQRCodeMessage');
   }
-}
-
-export class SendMessage{
-  constructor(
-    public Sender:string,
-    public MessageType:string,
-    public Message:string
-  ) {}
 }

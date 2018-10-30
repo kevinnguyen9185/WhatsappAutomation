@@ -1,0 +1,72 @@
+<div fxLayout="row wrap" fxLayoutGap="10">
+  <div [hidden]="step>0">
+    <mat-card *ngFor="let schedule of schedules">
+      <mat-card-title>
+        <mat-toolbar color="primary" [class]="schedule.issent?'sent_bar':'notsent_bar'">
+          <mat-icon>schedule</mat-icon>
+          <span>&nbsp;{{schedule.willSendDate}}</span>
+          <span class="spacer"></span>
+          <button mat-icon-button color="primary" (click)="runSchedule(schedule._id)" [disabled]="schedule.issent">
+            <mat-icon aria-label="Click to run immedieately">play_arrow</mat-icon>
+          </button>
+          <button mat-icon-button color="primary" (click)="deleteSchedule(schedule._id)">
+            <mat-icon aria-label="Delete this">delete</mat-icon>
+          </button>
+        </mat-toolbar>
+       
+      </mat-card-title>
+      <mat-card-content>
+        <mat-expansion-panel (opened)="loadImages(schedule)">
+          <mat-expansion-panel-header>
+            <mat-icon aria-label="Phone">message</mat-icon>&nbsp;{{schedule.chatMessage.substring(0,30)}}...
+          </mat-expansion-panel-header>
+          <div fxLayout="row wrap">
+            {{schedule.chatMessage}}
+          </div>
+          <br>
+          <div fxLayout="row wrap">
+            <div fxFlex="10" *ngFor="let photo of schedule.photos">
+              <img [src]="photo.content" class="upload_img">
+            </div>
+          </div>
+        </mat-expansion-panel>
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-icon aria-label="Phone">phone</mat-icon>
+            &nbsp;{{schedule.contacts.length}} contacts
+          </mat-expansion-panel-header>
+          <div fxLayout="row wrap" fxLayoutGap="10">
+            <mat-chip-list>
+              <mat-chip *ngFor="let contact of schedule.contacts">{{contact}}</mat-chip>
+            </mat-chip-list>  
+          </div>
+        </mat-expansion-panel>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+<div fxLayout="row wrap" fxLayoutGap="10">
+  <div [hidden]="step!=1">
+    <app-selectcontact></app-selectcontact>
+</div>
+</div>
+<div fxLayout="row wrap" fxLayoutGap="10">
+  <div [hidden]="step!=2" style="width:100%">
+    <app-chatsetup></app-chatsetup>
+  </div>
+</div>
+<br>
+<div fxLayout="row wrap" class="button-row">
+  <div [hidden]="step==0">
+    <button mat-raised-button color="primary" (click)="proceedScheduleBack()">
+      <mat-icon aria-label="Contacts">navigate_before</mat-icon>
+      Go back
+    </button>
+  </div>
+  <div>
+    <button mat-raised-button color="primary" (click)="proceedSchedule()" >
+      <mat-icon aria-label="Contacts">{{butProccedScheduleIcon}}</mat-icon>
+      {{butProccedScheduleText}}
+    </button>
+  </div>
+</div>

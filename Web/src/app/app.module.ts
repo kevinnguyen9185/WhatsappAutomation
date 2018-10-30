@@ -4,7 +4,7 @@ import { NgModule } from '@angular/core';
 import { FlexLayoutModule } from "@angular/flex-layout";
 
 import { AppComponent } from './app.component';
-import { MatFormFieldModule, MatCardModule, MatInputModule, MatButtonModule, MatProgressSpinnerModule, MatToolbarModule, MatMenuModule, MatIconModule, MatCheckboxModule } from '@angular/material';
+import { MatFormFieldModule, MatCardModule, MatInputModule, MatButtonModule, MatProgressSpinnerModule, MatToolbarModule, MatMenuModule, MatIconModule, MatCheckboxModule, MatProgressBarModule, MatDividerModule, MatExpansionModule, MatChipsModule, MatSnackBarModule } from '@angular/material';
 import { RouterModule, Routes } from '@angular/router';
 import { LoginComponent } from './module/login/login.component';
 import { ToolbarComponent } from './module/toolbar/toolbar.component';
@@ -15,6 +15,11 @@ import { ChatComponent } from './module/chat/chat.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FileDropModule } from 'ngx-file-drop';
 import { Ng2ImgMaxModule } from 'ng2-img-max';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { DashboardComponent } from './module/dashboard/dashboard.component';
+import { SelectcontactComponent } from './module/dashboard/selectcontact/selectcontact.component';
+import { ChatsetupComponent } from './module/dashboard/chatsetup/chatsetup.component';
+import { AngularDateTimePickerModule } from 'angular2-datetimepicker';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -28,14 +33,21 @@ const appRoutes: Routes = [
     ChatmainComponent,
     ToolbarComponent,
     QrcodeComponent,
-    ChatComponent
+    ChatComponent,
+    DashboardComponent,
+    SelectcontactComponent,
+    ChatsetupComponent
   ],
   imports: [
     BrowserModule,
     FlexLayoutModule,
     MatFormFieldModule,
     MatCardModule,
+    MatChipsModule,
+    MatSnackBarModule,
     MatInputModule,
+    MatExpansionModule,
+    MatDividerModule,
     BrowserAnimationsModule,
     MatButtonModule,
     MatToolbarModule,
@@ -48,11 +60,14 @@ const appRoutes: Routes = [
     ReactiveFormsModule,
     FileDropModule,
     Ng2ImgMaxModule,
+    HttpClientModule,
+    AngularDateTimePickerModule,
+    MatProgressBarModule,
     RouterModule.forRoot(
       appRoutes
     )
   ],
-  providers: [],
+  providers: [HttpClient],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -21,22 +21,17 @@ export class ChatComponent implements OnInit {
   constructor(private robotService:RobotService,
     private ng2ImgMax: Ng2ImgMaxService) { 
     this.imageUploads = [];
-    this.contactSub = robotService.contactListResult$.subscribe(result=>{
-      result.map((v)=>{
-        this.contacts.push(new Contact(v, true));
-      });
-    });
   }
 
   ngOnInit() {
   }
 
   public getContactList(){
-    this.robotService.sendMessage(JSON.stringify(<SendMessage>{
-      Sender : localStorage.getItem('phoneno'),
-      MessageType : 'ContactListMessage',
-      Message : '{}'
-    }));
+    this.contactSub = this.robotService.getContactList().subscribe(result=>{
+      result.map((v)=>{
+        this.contacts.push(new Contact(v, true));
+      });
+    })
   }
 
   public selectAllChange(evt:MatCheckboxChange){
@@ -52,11 +47,7 @@ export class ChatComponent implements OnInit {
             imgs.push(v.Content.split(',').pop());
           });
           var sendChatMess = new SendChatMessage(c.Contact, this.chatMessage, imgs);
-          this.robotService.sendMessage(JSON.stringify(<SendMessage>{
-            Sender : localStorage.getItem('phoneno'),
-            MessageType : 'SendChatMessage',
-            Message : JSON.stringify(sendChatMess)
-          }));
+          this.robotService.sendMessage(sendChatMess, 'SendChatMessage')
         });
       }
     });
@@ -109,14 +100,6 @@ export class ChatComponent implements OnInit {
   public fileLeave(event){
     console.log(event);
   }
-}
-
-export class SendMessage{
-  constructor(
-    public Sender:string,
-    public MessageType:string,
-    public Message:string
-  ) {}
 }
 
 export class Contact{

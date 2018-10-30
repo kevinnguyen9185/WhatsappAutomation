@@ -1,7 +1,10 @@
 <h1>Login with your account first</h1>
 <div class="login-container">
   <mat-form-field>
-    <input #phoneNumber matInput placeholder="Whatsapp phone number">
+    <input #phoneNumber matInput placeholder="Phone number">
   </mat-form-field>
-  <button mat-raised-button color="primary" (click)="doLogin(phoneNumber.value)">Login</button>
+  <mat-form-field>
+    <input #password matInput placeholder="Password">
+  </mat-form-field>
+  <button mat-raised-button color="primary" (click)="doLogin(phoneNumber.value, password.value)">Login</button>
 </div>

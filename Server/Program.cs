@@ -13,10 +13,9 @@ namespace Server
             var host = new WebHostBuilder() 
                 .UseKestrel() 
                 .UseContentRoot(Directory.GetCurrentDirectory()) 
-                .UseIISIntegration() 
                 .UseStartup<Startup>()
+                .UseUrls("http://*:5552")
                 .Build(); 
- 
             host.Run(); 
         }
     }

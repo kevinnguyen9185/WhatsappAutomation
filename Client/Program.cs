@@ -10,9 +10,17 @@ using Message.UI;
 using Newtonsoft.Json;
 using Message.Robot;
 using System.IO;
+using Microsoft.Extensions.CommandLineUtils;
 
 namespace Client
 {
+    //How the robot works?
+    //1. The robot running websapp without login
+    //2. The UI send username/password to the robot (The username should be the phone number.)
+    //3. Check login success or fail
+    //4. If login success, check Robot information on Server (If Username/Password matched, do the pair (Sending the username/password to Robot))
+    //5. If login success, if no robot matched, check free robot.
+    //6. If no robot found, remove the pair
     class Program
     {
         private static CancellationTokenSource _cts  = new CancellationTokenSource();
@@ -21,8 +29,20 @@ namespace Client
         private static ChatPage _chatPage;
         private static string _robotConnId = Guid.NewGuid().ToString();
         private static readonly AutoResetEvent _closing = new AutoResetEvent(false);
+        private static string _baseWebsocketAddress = "localhost:5552";
+        public static string SharedSelFolder = "";
         static async Task Main(string[] args)
         {
+            var app = new CommandLineApplication();
+            var selFolderOtions = app.Option("--selfolder <selfolder>", "add folder", CommandOptionType.SingleValue);
+            app.OnExecute(() => {
+                if(selFolderOtions.HasValue()){
+                    Program.SharedSelFolder = selFolderOtions.Value();
+                    Console.WriteLine($"Set selfolder to {Program.SharedSelFolder}");
+                }
+                return 0;
+            });
+            app.Execute(args);
             //Handle Ctrl C
             Console.CancelKeyPress += new ConsoleCancelEventHandler((sender, e)=>{
                 Bootstrap.ChromeDriver.Quit();
@@ -33,6 +53,7 @@ namespace Client
             //Handle global exception
             System.AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler((sender, e)=>{
                 Console.WriteLine(e.ExceptionObject.ToString());
+                Bootstrap.ChromeDriver.Quit();
                 _cts.Cancel();
                 Console.WriteLine("Quit the driver then close...");
                 _closing.Set();
@@ -42,7 +63,7 @@ namespace Client
             _chatPage = new ChatPage("WhatsApp");
             Console.WriteLine("Client started...");
             client.Options.SetBuffer(1024*1024, 1024*1024);
-            await client.ConnectAsync(new Uri($"ws://localhost:5000/ServerSocket?connId={_robotConnId}&type=robot"), _cts.Token);
+            await client.ConnectAsync(new Uri($"ws://{_baseWebsocketAddress}/ServerSocket?connId={_robotConnId}&type=robot"), _cts.Token);
             var tReadMessage = ReadMessage(_cts.Token);
             var tCheckLoginStt = CheckLoginStatus(_cts.Token);
             await Task.WhenAll(tReadMessage, tCheckLoginStt);
@@ -94,7 +115,8 @@ namespace Client
                     await SendMessageAsync(Utils.CreateSendMessage<LoginStatusResponseMessage>(_robotConnId,
                         new LoginStatusResponseMessage(){
                             Status = _chatPage.IsLogin.ToString()
-                        }
+                        },
+                        "robot"
                     ));
                 }
                 catch
@@ -158,11 +180,13 @@ namespace Client
                     if(!_chatPage.IsLogin)
                     {
                         var imgContent = _langdingPage.QRCode;
-                        await SendMessageAsync(JsonConvert.SerializeObject(new SendMessage(){
-                            Sender = _robotConnId,
-                            MessageType = "GetQRCodeResponseMessage",
-                            Message = imgContent
-                        }));
+                        await SendMessageAsync(Utils.CreateSendMessage<GetQRCodeResponseMessage>(
+                            _robotConnId,
+                            new GetQRCodeResponseMessage(){
+                                QRCodeBase64 = imgContent
+                            },
+                            "robot"
+                        ));
                     }
                     break;
                 case "ErrorMessage":
@@ -170,13 +194,31 @@ namespace Client
                     await ProcessErrorMessage(errMess.Message);
                     break;
                 case "ContactListMessage":
-                    var contacts = _chatPage.GetContactList();
-                    await SendMessageAsync(Utils.CreateSendMessage<ContactListResponseMessage>(
-                        _robotConnId,
-                        new ContactListResponseMessage(){
-                            Contacts = contacts
-                        }
-                    ));
+                    var contactCmd = JsonConvert.DeserializeObject<ContactListResponseMessage>(receiveMessage.Message);
+                    if(contactCmd.IsGetall)
+                    {
+                        var contacts = await _chatPage.GetContactListAll();
+                        await SendMessageAsync(Utils.CreateSendMessage<ContactListResponseMessage>(
+                            _robotConnId,
+                            new ContactListResponseMessage(){
+                                IsGetall = true,
+                                Contacts = contacts
+                            },
+                            "robot"
+                        ));
+                    }
+                    else
+                    {
+                        var contacts = _chatPage.GetContactList();
+                        await SendMessageAsync(Utils.CreateSendMessage<ContactListResponseMessage>(
+                            _robotConnId,
+                            new ContactListResponseMessage(){
+                                IsGetall = false,
+                                Contacts = contacts
+                            },
+                            "robot"
+                        ));
+                    }
                     break;
                 case "SendChatMessage":
                     var sendchatMessage = JsonConvert.DeserializeObject<SendChatMessage>(receiveMessage.Message);
@@ -190,7 +232,8 @@ namespace Client
                     }
                     await SendMessageAsync(Utils.CreateSendMessage<SendChatResponseMessage>(
                         _robotConnId,
-                        new SendChatResponseMessage()
+                        new SendChatResponseMessage(),
+                        "robot"
                     ));
                     break;
                 default:

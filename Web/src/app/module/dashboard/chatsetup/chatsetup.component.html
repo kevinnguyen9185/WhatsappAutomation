@@ -1,0 +1,31 @@
+<mat-card>
+  <mat-card-content>
+    <file-drop headertext="" (onFileDrop)="dropped($event)" 
+    (onFileOver)="fileOver($event)" (onFileLeave)="fileLeave($event)">
+        <span>Drag photos here (.png, .jpeg, .jpg) Maximum 10 items</span>
+    </file-drop>
+    <br>
+    <hr>
+    <div fxLayout="row wrap" fxLayoutGap="5">
+      <div fxFlex="19" *ngFor="let imageData of imageUploads">
+        <div fxLayout="column" fxLayoutAlign="top right">
+          <div fxFlex="100">
+            <button mat-icon-button (click)="removeImage(imageData.Path)">
+              <mat-icon aria-label="Click here to remove image">clear</mat-icon>
+            </button>
+          </div>
+          <div fxFlex="90">
+            <img [src]="imageData.Content" class="upload_img">
+          </div>
+        </div>
+      </div>
+    </div>
+    <mat-form-field class="chatbox-full-width">
+      <textarea matInput placeholder="Message to send" [(ngModel)]="chatMessage" maxlength="1024" minlength="1"></textarea>
+    </mat-form-field>
+    <angular2-date-picker [(ngModel)]="date" [settings]="settings"></angular2-date-picker>
+    <div [hidden]="!isSaving">
+      <mat-progress-bar mode="indeterminate" ></mat-progress-bar>
+    </div>
+  </mat-card-content>
+</mat-card>

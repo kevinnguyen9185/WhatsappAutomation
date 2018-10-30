@@ -3,6 +3,7 @@ import { RobotService } from '../../core/services/robot.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserService } from 'src/app/core/services/user.service';
 import { Subscription } from 'rxjs';
+import { delay } from 'q';
 
 @Component({
   selector: 'app-login',
@@ -11,35 +12,59 @@ import { Subscription } from 'rxjs';
   providers: [RobotService]
 })
 export class LoginComponent implements OnInit, OnDestroy {
-  loginResultSub:Subscription;
-  isLoginSub:Subscription;
+  isOpenResultSub:Subscription;
   phoneNumber:string;
+  password:string;
 
   constructor(private robotService: RobotService,
     private route: ActivatedRoute, 
     private router: Router, 
     private userService: UserService){
-    this.loginResultSub = this.robotService.LoginResult$.subscribe(result => {
+
+    this.isOpenResultSub = this.robotService.IsOpenResult$.subscribe(result => {
+      var self = this;
       if(result){
-        this.userService.setLoggedIn(true, this.phoneNumber);
-        this.router.navigate(['/chatmain']);
+        //Do real login
+        var mess = <any>{
+          UserName : self.phoneNumber,
+          Password : self.password
+        };
+        delay(1000).then(()=>{
+          this.robotService.sendMessage(mess, 'LoginMessage', self.phoneNumber);
+        });
       } else {
-        this.userService.setLoggedIn(false, this.phoneNumber);
-        alert('Login failed');
+        alert('No connection to server, please login');
       }
     });
   }
 
-  doLogin(phoneNo: string) {
+  doLogin(phoneNo: string, password: string) {
     this.phoneNumber = phoneNo;
-    this.robotService.doLogin(phoneNo);
+    this.password = password;
+    this.userService.login(phoneNo, password).subscribe(result => {
+      if(result && result.loginToken){
+        this.userService.setLoggedIn(result.loginToken, this.phoneNumber);
+        this.robotService.connectWs(this.phoneNumber, result.loginToken, 'web');
+        this.router.navigate(['/chatmain']);
+      } else {
+        alert('Login failed');
+      }
+    });
   }
 
   ngOnInit() {
   }
 
   ngOnDestroy() {
-    this.loginResultSub.unsubscribe();
+    this.isOpenResultSub.unsubscribe();
   }
 
+}
+
+export class SendMessage{
+  constructor(
+    public Sender:string,
+    public MessageType:string,
+    public Message:string,
+  ) {}
 }

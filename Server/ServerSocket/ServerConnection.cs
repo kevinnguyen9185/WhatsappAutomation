@@ -6,6 +6,7 @@ using Server.WebSocketManager;
 using Newtonsoft.Json; 
 using Message;
 using Microsoft.Extensions.Logging;
+using Server.Business;
 
 namespace Server.ServerSocket 
 { 
@@ -25,22 +26,30 @@ namespace Server.ServerSocket
             try
             {
                 var receiveMessage = JsonConvert.DeserializeObject<SendMessage>(message); 
-                var receiver = Handler.Connections.FirstOrDefault(m => ((ServerConnection)m).ConnectionId == receiveMessage.Sender); 
-    
-                if (receiver != null)
+                //Validation
+                if(receiveMessage.Type=="robot" || new LoginBusiness().IsTokenValid(receiveMessage.Sender, receiveMessage.LoginToken))
                 {
-                    await _messHandler.ProcessMessage(receiveMessage);
-                }
-                else
-                { 
-                    var sendMessage = JsonConvert.SerializeObject(new SendMessage 
-                    { 
-                        Sender = ConnectionId, 
-                        MessageType = "ErrorMessage",
-                        Message = "Can not seed to " + receiveMessage.Sender 
-                    }); 
+                    var receiver = Handler.Connections.FirstOrDefault(m => ((ServerConnection)m).ConnectionId == receiveMessage.Sender); 
     
-                    await SendMessageAsync(sendMessage); 
+                    if (receiver != null)
+                    {
+                        await _messHandler.ProcessMessage(receiveMessage);
+                    }
+                    else
+                    { 
+                        var sendMessage = JsonConvert.SerializeObject(new SendMessage 
+                        { 
+                            Sender = ConnectionId, 
+                            MessageType = "ErrorMessage",
+                            Message = "Can not seed to " + receiveMessage.Sender 
+                        }); 
+        
+                        await SendMessageAsync(sendMessage); 
+                    }
+                }
+                else 
+                {
+                    this.WebSocket.Abort();
                 }
             }
             catch(Exception ex)

@@ -3,11 +3,11 @@
 </ngx-spinner>
 <div fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="10">
     <div fxFlex="90">
-        <app-qrcode *ngIf="!isRobotLoggedIn"></app-qrcode>
+        <app-dashboard *ngIf="isRobotLoggedIn"></app-dashboard>
     </div>
 </div>
 <div fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="10">
     <div fxFlex="90">
-        <app-chat *ngIf="isRobotLoggedIn"></app-chat>
+        <app-qrcode *ngIf="isShowQrCode"></app-qrcode>
     </div>
 </div>

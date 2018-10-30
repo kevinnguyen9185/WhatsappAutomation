@@ -18,7 +18,9 @@ export class ChatmainComponent implements OnInit, OnDestroy {
   private isOrphanedSub:Subscription;
   private isOpenSub:Subscription;
   private isRobotLoginSub:Subscription;
+  isShowQrCode = false;
   isRobotLoggedIn = false;
+  isAutoSetup = false;
 
   constructor(private robotService: RobotService,
     private userService:UserService,
@@ -31,6 +33,7 @@ export class ChatmainComponent implements OnInit, OnDestroy {
         this.pairWithRobot();
       } else {
         this.spinner.hide();
+        this.isShowQrCode = true;
       }
     });
     this.isOrphanedSub = this.robotService.IsOrphanedResult$.subscribe(result => {
@@ -44,13 +47,11 @@ export class ChatmainComponent implements OnInit, OnDestroy {
       var newStatus = result.toLowerCase()=='true'?true:false;
       if(newStatus!=this.isRobotLoggedIn){
         this.isRobotLoggedIn = newStatus;
-        delay(1000).then(()=>{
-          this.chatComponent.getContactList();
-        });
       }
+      this.isShowQrCode = !newStatus;
     });
 
-    this.robotService.connectWs(localStorage.getItem('phoneno'));
+    this.robotService.connectWs(localStorage.getItem('phoneno'), localStorage.getItem('logintoken'));
     this.spinner.show();
   }
 
@@ -62,35 +63,8 @@ export class ChatmainComponent implements OnInit, OnDestroy {
   }
 
   public pairWithRobot(){
-    this.robotService.sendMessage(JSON.stringify(<SendMessage>{
-      Sender : localStorage.getItem('phoneno'),
-      MessageType : 'PairRobotUIMessage',
-      Message : '{}'
-    }));
+    delay(2000).then(()=>{
+      this.robotService.sendMessage(<any>{}, 'PairRobotUIMessage');
+    })
   }
-
-  public unpairWithRobot(){
-    var mess = <any>{
-      UIId : localStorage.getItem('phoneno'),
-      RobotId : localStorage.getItem('robotConnId')
-    };
-    console.log(JSON.stringify(<SendMessage>{
-      Sender : localStorage.getItem('phoneno'),
-      MessageType : 'UnPairRobotUIMessage',
-      Message : mess
-    }));
-    this.robotService.sendMessage(JSON.stringify(<SendMessage>{
-      Sender : localStorage.getItem('phoneno'),
-      MessageType : 'UnPairRobotUIMessage',
-      Message : JSON.stringify(mess)
-    }));
-  }
-}
-
-export class SendMessage{
-  constructor(
-    public Sender:string,
-    public MessageType:string,
-    public Message:string
-  ) {}
 }

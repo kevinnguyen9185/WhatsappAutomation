@@ -1,22 +1,15 @@
 <div fxLayout="row wrap" fxLayoutGap="10">
-  <div fxFlex="28" fxLayoutGap="10">
-    <mat-card>
-        <mat-card-header>
-          <mat-card-title>Contacts</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <ul>
-            <li><mat-checkbox checked="true" (change)="selectAllChange($event)">Select all</mat-checkbox></li>
-            <hr>
-            <li *ngFor="let contact of contacts">
-              <mat-checkbox [(ngModel)]="contact.Checked">{{contact.Contact}}</mat-checkbox>
-            </li>
-          </ul>
-        </mat-card-content>
-    </mat-card>
+  <div fxFlex class="box">
+    
+    <ul>
+      <li><mat-checkbox checked="true" (change)="selectAllChange($event)">Select all</mat-checkbox></li>
+      <hr>
+      <li *ngFor="let contact of contacts">
+        <mat-checkbox [(ngModel)]="contact.Checked">{{contact.Contact}}</mat-checkbox>
+      </li>
+    </ul>
   </div>
-  <div fxFlex="2"></div>
-  <div fxFlex="70" fxLayoutGap="10">
+  <div fxFlex="70" class="chat">
     <mat-card>
         <mat-card-content>
           <file-drop headertext="Drop files here" (onFileDrop)="dropped($event)" 

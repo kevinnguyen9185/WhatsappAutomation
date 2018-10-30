@@ -1,0 +1,44 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title class="contact_title">
+      <span>Selected contacts</span>
+    </mat-card-title>
+    <mat-card-subtitle>
+      (Select the contact below for the schedule)
+    </mat-card-subtitle>
+  </mat-card-header>  
+  <mat-card-content>
+    <div fxLayout="row wrap" fxLayoutGap="10" fxLayoutAlign="left" class="button-row">
+      <button mat-raised-button color="accent" class="button-row" (click)="removeselected(contact)" *ngFor="let contact of selectedcontacts">
+        <mat-icon aria-label="Phone">phone</mat-icon>
+        {{contact}}
+      </button>
+    </div>
+  </mat-card-content>
+</mat-card>
+<mat-card>
+  <mat-card-header>
+    <mat-card-title class="contact_title">
+      <mat-checkbox (change)="selectAllRecentContacts()">Select all recent contacts in chat</mat-checkbox>
+    </mat-card-title>
+  </mat-card-header>  
+  <mat-card-content>
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-icon aria-label="Contacts">account_circle</mat-icon><span class="span_title">&nbsp;Click to view all contacts</span>
+      </mat-expansion-panel-header>
+      <div fxLayout="row wrap" fxLayoutGap="10" fxLayoutAlign="left" class="button-row">
+        <button mat-raised-button color="primary" (click)="selectcontact(contact)" *ngFor="let contact of recentcontacts">
+          <mat-icon aria-label="Contacts">account_circle</mat-icon>
+          {{contact}}
+        </button>
+      </div>
+    </mat-expansion-panel>
+  </mat-card-content>
+  <mat-card-actions>
+    <button mat-raised-button (click)="refreshContactList()">
+      <mat-icon aria-label="Contacts">refresh</mat-icon>
+      Click here to get the latest contact list
+    </button>
+  </mat-card-actions>
+</mat-card>

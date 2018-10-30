@@ -1,7 +1,7 @@
 import { Component,Injectable } from '@angular/core';
 import { Observable, fromEvent, Subject } from 'rxjs';
 import { UserService } from './user.service';
-import { delay } from 'q';
+import { delay, send } from 'q';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +11,8 @@ export class RobotService {
   private headers: Headers;
   private static websocket: WebSocket;
   private receivedMsg: any;
-  private static loginResultSubject = new Subject<boolean>();
+  private baseWebsocketUrl: string = `localhost:5552`;
+  private static loginResultSubject = new Subject<string>();
   LoginResult$ = RobotService.loginResultSubject.asObservable();
   private static qrImageSubject = new Subject<string>();
   QrImageResult$ = RobotService.qrImageSubject.asObservable();
@@ -32,13 +33,24 @@ export class RobotService {
     
   }
 
-  public sendMessage(text:string){
+  public getContactList(isGetall:boolean=false):Observable<any>{
+    this.sendMessage(<any>{IsGetall:isGetall}, 'ContactListMessage');
+    return this.contactListResult$;
+  }
+
+  public sendMessage(mess:any, messtype:string, sender:string=''){
+    var text = JSON.stringify(<SendMessage>{
+      Sender : sender==''?localStorage.getItem('phoneno'):sender,
+      LoginToken: localStorage.getItem('logintoken'),
+      MessageType : messtype,
+      Message : JSON.stringify(mess)
+    })
     RobotService.websocket.send(text);
   }
 
-  public connectWs(uiId: string){
+  public connectWs(uiId: string, securestring:string, type='password'){
     if (RobotService.websocket==null){
-      RobotService.websocket = new WebSocket(`ws://localhost:5000/ServerSocket?connId=${uiId}`);
+      RobotService.websocket = new WebSocket(`ws://${this.baseWebsocketUrl}/ServerSocket?connId=${localStorage.getItem('phoneno')}&logintoken=${localStorage.getItem('logintoken')}`);
     } else {
       RobotService.isOpenSubject.next(true);
     }
@@ -48,25 +60,19 @@ export class RobotService {
     RobotService.websocket.onmessage = RobotService.processMessage;
     RobotService.websocket.onclose = ()=>{
       RobotService.isWsCloseSubject.next(true);
-      alert('You are connecting from different browser. This will be disconnected');
+      alert('You are either disconnected or connecting from different browser. This will be disconnected');
     };
-  }
-
-  public getInstanceStatus(uiId: string): Observable<MessageEvent>{
-    if (!RobotService.websocket){
-      this.connectWs(uiId);
-    }
-    return fromEvent<MessageEvent>(RobotService.websocket, 'message');
   }
 
   static processMessage(event:MessageEvent){
     var mess = JSON.parse(event.data);
     switch(mess.MessageType){
       case "LoginResponseMessage":
-        if(mess.Message == '"ok"'){
-          RobotService.loginResultSubject.next(true);
+        var loginResponse = JSON.parse(mess.Message);
+        if(loginResponse.LoginToken){
+          RobotService.loginResultSubject.next(loginResponse.LoginToken);
         } else {
-          RobotService.loginResultSubject.next(false);          
+          RobotService.loginResultSubject.next("");          
         }
         break;
       case "LoginStatusResponseMessage":
@@ -108,8 +114,13 @@ export class RobotService {
         break;
     }
   }
+}
 
-  public doLogin(phoneNo:string){
-    this.connectWs(phoneNo);
-  }
+export class SendMessage{
+  constructor(
+    public Sender:string,
+    public MessageType:string,
+    public Message:string,
+    public LoginToken:string
+  ) {}
 }

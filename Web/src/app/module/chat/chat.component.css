@@ -20,3 +20,13 @@ ul {
     max-width:180px;
     border:2px;
 }
+
+div .box{
+  min-width: 200px;
+  height:400px;
+  overflow:auto;
+}
+
+div .chat{
+  min-width: 200px;
+}

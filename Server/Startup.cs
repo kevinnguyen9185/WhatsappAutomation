@@ -18,6 +18,10 @@ namespace Server
             // services.AddSingleton(new LoggerFactory()
             //     .AddConsole());
             // services.AddLogging();
+            services.AddCors(options=>{
+                options.AddPolicy("localhost",
+                    builder=> builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+            });
             services.AddMvc(); 
             services.AddWebSocketManager(); 
         } 
@@ -31,8 +35,6 @@ namespace Server
             } 
  
             app.UseWebSockets();
-
-            //app.MapWebSocketManager("/RobotSocket", serviceProvider.GetService<RobotSocketHandler>());
 
             app.MapWebSocketManager("/ServerSocket", serviceProvider.GetService<ServerSocketHandler>());
  

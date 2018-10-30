@@ -1,0 +1,38 @@
+mat-card-title{
+    font-weight:800;
+}
+
+.chatbox-form {
+  min-width: 150px;
+  max-width: 500px;
+  width: 100%;
+}
+
+.chatbox-full-width {
+  width: 100%;
+}
+
+.upload_img {
+  max-width:180px;
+  border:2px;
+}
+
+div .box{
+min-width: 200px;
+height:400px;
+overflow:auto;
+}
+
+div .chat{
+min-width: 200px;
+}
+
+.mat-card{
+  padding-bottom: 50px;
+  padding-top: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.mat-card-actions {
+  margin-left:0px;
+}

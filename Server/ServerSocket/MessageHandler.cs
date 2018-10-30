@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Message;
 using Message.Robot;
@@ -6,11 +5,10 @@ using Newtonsoft.Json;
 using Microsoft.Extensions.Logging;
 using System.Net.WebSockets;
 using Message.UI;
-using Message.Robot;
 using Server.WebSocketManager;
 using Server.Business;
 
-namespace Server.ServerSocket 
+namespace Server.ServerSocket
 {
     public class MessageHandler
     {
@@ -29,6 +27,19 @@ namespace Server.ServerSocket
             _currentConn = (ServerConnection)_serverSocketHandler.Connections.Find(p=>((ServerConnection)p).ConnectionId == mess.Sender);
             switch(mess.MessageType)
             {
+                case "LoginMessage":
+                    var loginMessage = JsonConvert.DeserializeObject<LoginMessage>(mess.Message);
+                    //Check username and password against the database
+                    var loginToken = new LoginBusiness().IsLogin(loginMessage.UserName, loginMessage.Password);
+                    if(!string.IsNullOrEmpty(loginToken))
+                    {
+                        await _currentConn.SendMessageAsync(Message.Utils.CreateSendMessage<LoginResponseMessage>(mess.Sender, new LoginResponseMessage(){LoginToken=loginToken}));
+                    }
+                    else
+                    {
+                        _currentConn.WebSocket.Abort();
+                    }
+                    break;
                 case "GetQRCodeMessage":
                     var robotConn = await GetDestinationConnectionFromSource(mess.Sender);
                     if (robotConn != null && robotConn.WebSocket.State == WebSocketState.Open)
@@ -123,7 +134,10 @@ namespace Server.ServerSocket
                     if (contactRobotConn != null && contactRobotConn.WebSocket.State == WebSocketState.Open)
                     {
                         _logger.LogInformation($"Get contact list for {mess.Sender}");
-                        await contactRobotConn.SendMessageAsync(Message.Utils.CreateSendMessage<ContactListMessage>(contactRobotConn.ConnectionId, new ContactListMessage()));
+                        await contactRobotConn.SendMessageAsync(Message.Utils.CreateSendMessage<ContactListMessage>(
+                            contactRobotConn.ConnectionId, 
+                            JsonConvert.DeserializeObject<ContactListMessage>(mess.Message)
+                        ));
                     }
                     else
                     {
@@ -134,7 +148,7 @@ namespace Server.ServerSocket
                     var contactSource = await GetSourceConnectionFromDestination(mess.Sender);
                     if (contactSource != null && contactSource.WebSocket.State == WebSocketState.Open)
                     {
-                        _logger.LogInformation($"Send contact list back to UI from robot {mess.Sender}");
+                        _logger.LogInformation($"Send contact list back to UI {contactSource.ConnectionId} from robot {mess.Sender}");
                         await contactSource.SendMessageAsync(Message.Utils.CreateSendMessage<ContactListResponseMessage>(
                             contactSource.ConnectionId, 
                             JsonConvert.DeserializeObject<ContactListResponseMessage>(mess.Message)));
@@ -148,7 +162,7 @@ namespace Server.ServerSocket
                     var chatMessRobotConn = await GetDestinationConnectionFromSource(mess.Sender);
                     if (chatMessRobotConn != null && chatMessRobotConn.WebSocket.State == WebSocketState.Open)
                     {
-                        _logger.LogInformation($"Get contact list for {mess.Sender}");
+                        _logger.LogInformation($"Send chat message for {mess.Sender}");
                         await chatMessRobotConn.SendMessageAsync(Message.Utils.CreateSendMessage<SendChatMessage>(
                             chatMessRobotConn.ConnectionId, 
                             JsonConvert.DeserializeObject<SendChatMessage>(mess.Message)
@@ -163,7 +177,7 @@ namespace Server.ServerSocket
                     var chatMessSource = await GetSourceConnectionFromDestination(mess.Sender);
                     if (chatMessSource != null && chatMessSource.WebSocket.State == WebSocketState.Open)
                     {
-                        _logger.LogInformation($"Send contact list back to UI from robot {mess.Sender}");
+                        _logger.LogInformation($"Chat response to UI {chatMessSource.ConnectionId} from robot {mess.Sender}");
                         await chatMessSource.SendMessageAsync(Message.Utils.CreateSendMessage<SendChatResponseMessage>(
                             chatMessSource.ConnectionId, 
                             JsonConvert.DeserializeObject<SendChatResponseMessage>(mess.Message)));

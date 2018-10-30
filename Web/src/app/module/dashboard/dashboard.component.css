@@ -1,0 +1,32 @@
+.button-row button,
+.button-row a {
+  margin-right: 8px;
+  margin-bottom: 5px;
+}
+.mat-card{
+  padding-bottom: 20px;
+  padding-top: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.mat-card-actions {
+  margin-left:0px;
+}
+.spacer {
+  -webkit-box-flex: 1;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+}
+
+.upload_img {
+  max-width:120px;
+  border:2px;
+}
+
+.sent_bar{
+  background-color: greenyellow;
+}
+
+.notsent_bar{
+  background-color:orange;
+}

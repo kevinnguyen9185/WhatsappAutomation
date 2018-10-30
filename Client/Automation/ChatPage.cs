@@ -8,6 +8,9 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Remote;
 using OpenQA.Selenium.Support.UI;
+using Client.Automation;
+using System.Linq;
+using OpenQA.Selenium.Interactions;
 
 namespace Client.Automation
 {
@@ -29,7 +32,7 @@ namespace Client.Automation
         {
             try
             {
-                var elm = Driver.FindElement(By.CssSelector("span[data-icon]"));
+                var elm = Driver.FindElement(By.CssSelector("span[data-icon='menu']"));
                 return elm != null;
             }
             catch(NoSuchElementException ex)
@@ -56,9 +59,84 @@ namespace Client.Automation
                     catch{}
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
+            }
+            return lstContact;
+        }
 
+        public async Task<List<string>> GetContactListAll()
+        {
+            Driver.FindElement(By.CssSelector("span[data-icon='menu']")).Click();
+            await Task.Delay(500);
+            Driver.FindElement(By.CssSelector("div[title='New group']")).Click();
+            await Task.Delay(500);
+            var nextGet = await GetContactListFromGroup();
+            nextGet = nextGet.OrderByDescending(f=>f.Key).ToList();
+            var contactList = new List<string>();
+            contactList.AddRange(nextGet.Select(f=>f.Key));
+            int differenceNo = contactList.Count;
+            while(true)
+            {                
+                var actions = new Actions(Driver);
+                actions.MoveToElement(nextGet[0].Value);
+                actions.Perform();
+                await Task.Delay(500);
+                nextGet = await GetContactListFromGroup();
+                nextGet = nextGet.OrderByDescending(f=>f.Key).ToList();
+                var intersectNo = nextGet.Select(n=>n.Key).Intersect(contactList).Count();
+                differenceNo = nextGet.Count - intersectNo;
+                if(differenceNo == 0)
+                {
+                    break;
+                }
+                else
+                {
+                    var newList = nextGet.Where(n=>!contactList.Contains(n.Key)).Select(n=>n.Key).ToList();
+                    contactList.AddRange(newList);
+                }
+            }
+            return contactList;
+        }
+
+        public async Task<List<KeyValuePair<string, IWebElement>>> GetContactListFromGroup()
+        {
+            List<KeyValuePair<string, IWebElement>> lstContact = new List<KeyValuePair<string, IWebElement>>();
+            try
+            {
+                var contactContainerElms = Driver.FindElements(By.CssSelector("div[class='_3q4NP k1feT']"));
+                var realContactsContainers = new List<IWebElement>();
+                foreach(var contactContainerElm in contactContainerElms)
+                {
+                    if(contactContainerElm.GetAttribute("innerHTML").Contains("Add group participants")){
+                        //Find all contacts
+                        try
+                        {
+                            var tempContainers = contactContainerElm.FindElements(By.CssSelector("div[class='_2EXPL']"));
+                            foreach(var tempContainerElm in tempContainers)
+                            {
+                                var cssSelectorLinkedList = new LinkedList<string>(new string[]{"span[class='_3TEwt']", "span[class='_1wjpf']"});
+                                var contactElms = Support.GetRecursiveElementByCssSelector(cssSelectorLinkedList.First , tempContainerElm);
+                                //lstContact.Add(contactElm.GetAttribute("title"));
+                                if(contactElms.Count>0)
+                                {
+                                    lstContact.Add(new KeyValuePair<string, IWebElement>(contactElms[0].GetAttribute("title"), contactElms[0]));
+                                }
+                            }
+                        }
+                        catch(Exception ex)
+                        {
+
+                        }
+                        lstContact = lstContact.OrderBy(l=>l.Key).ToList();
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
             return lstContact;
         }
@@ -86,9 +164,21 @@ namespace Client.Automation
                                 //Save file to local disk
                                 for (int j = 0;j<fileContents.Length;j++)
                                 {
-                                    var fileItem =await SaveBase64ToLocal(fileContents[j]);
-                                    filePath.Add(fileItem);
-                                    Console.WriteLine($"Temp file saved {fileItem}");
+                                    //If file item is filepath
+                                    var filecontent = fileContents[j];
+                                    var outGuidResult = Guid.Empty;
+                                    Guid.TryParse(filecontent.Replace(".png",""), out outGuidResult);
+                                    if(outGuidResult!=Guid.Empty)
+                                    {
+                                        String hostpath = Path.Combine(GetSelSharedFolder(), "robot_images");
+                                        filePath.Add(Path.Combine(hostpath, filecontent));
+                                    }
+                                    else
+                                    {
+                                        var fileItem =await SaveBase64ToLocal(filecontent);
+                                        filePath.Add(fileItem);
+                                        Console.WriteLine($"Temp file saved {fileItem}");
+                                    }
                                 }
                                 //Append image
                                 await OpenLocalFile(filePath.ToArray());
@@ -133,7 +223,8 @@ namespace Client.Automation
 
         private async Task<string> SaveBase64ToLocal(string base64Img)
         {
-            String hostpath = Path.Combine(System.Environment.GetEnvironmentVariable("SEL_SHARED_FOLDER"), "robot_images");
+            var sel_shared_folder = GetSelSharedFolder();
+            String hostpath = Path.Combine(sel_shared_folder, "robot_images");
             String dockerpath = "/home/seluser";
 
             //Check if directory exist
@@ -157,6 +248,20 @@ namespace Client.Automation
             {
                 return imgPath;
             }
+        }
+
+        private string GetSelSharedFolder()
+        {
+            var sel_shared_folder = Program.SharedSelFolder;
+            if(string.IsNullOrEmpty(Program.SharedSelFolder))
+            {
+                var sel_shared_folder_env = System.Environment.GetEnvironmentVariable("SEL_SHARED_FOLDER", EnvironmentVariableTarget.Machine);
+                if(sel_shared_folder_env==null)
+                {
+                    sel_shared_folder = sel_shared_folder_env.ToString();
+                }
+            }
+            return sel_shared_folder;
         }
 
         private async Task OpenLocalFile(string[] filePath)
@@ -193,7 +298,7 @@ namespace Client.Automation
                 //Console.WriteLine(inputFile.TagName);
                 inputFile.SendKeys(inputs);
                 //inputFile.SendKeys("/home/seluser/2ngo-thanh-van.jpg");
-                ((RemoteWebDriver)Driver).GetScreenshot().SaveAsFile($"/Users/kevinng/Ansarada/Selenium_docker/Draghinh_{Guid.NewGuid().ToString()}.png",ScreenshotImageFormat.Png);
+                //((RemoteWebDriver)Driver).GetScreenshot().SaveAsFile($"/Users/kevinng/Ansarada/Selenium_docker/Draghinh_{Guid.NewGuid().ToString()}.png",ScreenshotImageFormat.Png);
             }
             catch(Exception ex)
             {
