@@ -69,6 +69,10 @@ export class UserService {
   public getPhoto(id:string){
     return this.httpClient.get<any>(`http://${this.baseWebApiUrl}/api/Schedule/Photo?id=${id}`);
   }
+
+  public getContacts(userid:string){
+    return this.httpClient.get<any>(`http://${this.baseWebApiUrl}/api/Schedule/GetContacts?userid=${userid}`);
+  }
 }
 
 export class Schedule{

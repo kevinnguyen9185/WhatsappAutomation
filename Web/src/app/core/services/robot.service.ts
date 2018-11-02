@@ -10,6 +10,7 @@ export class RobotService {
   private actionUrl: string;
   private headers: Headers;
   private static websocket: WebSocket;
+  static isLoadedRecentContact:boolean = false;
   private receivedMsg: any;
   private baseWebsocketUrl: string = `localhost:5552`;
   private static loginResultSubject = new Subject<string>();
@@ -32,6 +33,14 @@ export class RobotService {
   constructor() {
     
   }
+
+  public get LoadedRecentContact() : boolean {
+    return RobotService.isLoadedRecentContact;
+  }
+  public set LoadedRecentContact(v : boolean) {
+    RobotService.isLoadedRecentContact = v;
+  }
+  
 
   public getContactList(isGetall:boolean=false):Observable<any>{
     this.sendMessage(<any>{IsGetall:isGetall}, 'ContactListMessage');

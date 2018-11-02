@@ -88,5 +88,14 @@ namespace WebApi.Business
 
             return Convert.ToBase64String(bytes);
         }
+
+        public async Task<List<Contact>> GetContactsAsync(string userId)
+        {
+            using(var db = new LiteRepository(ConnectionString))
+            {
+                return db.Query<Contact>()
+                    .Where(c=>c.UserId == userId).ToList();
+            }
+        }
     }
 }

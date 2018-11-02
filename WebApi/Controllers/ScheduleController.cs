@@ -67,5 +67,14 @@ namespace WebApi.Controllers
                 }
             );
         }
+
+        [HttpGet]
+        [Route("GetContacts")]
+        public async Task<IActionResult> GetContactsAsync([FromQuery] string userid)
+        {
+            return Ok(
+                await new ScheduleBusiness().GetContactsAsync(userid)
+            );
+        }
     }
 }

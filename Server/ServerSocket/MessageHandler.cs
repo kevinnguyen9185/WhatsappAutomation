@@ -7,6 +7,9 @@ using System.Net.WebSockets;
 using Message.UI;
 using Server.WebSocketManager;
 using Server.Business;
+using System.Collections.Generic;
+using Server.Business.Models;
+using System;
 
 namespace Server.ServerSocket
 {
@@ -148,6 +151,20 @@ namespace Server.ServerSocket
                     var contactSource = await GetSourceConnectionFromDestination(mess.Sender);
                     if (contactSource != null && contactSource.WebSocket.State == WebSocketState.Open)
                     {
+                        var contactListResponseMessage = JsonConvert.DeserializeObject<ContactListResponseMessage>(mess.Message);
+                        var lstContact = new List<Contact>();
+
+                        contactListResponseMessage.Contacts.ForEach(contactModel=>{
+                            var contactDb = new Contact(){
+                                UserId = contactSource.ConnectionId,
+                                ContactName = contactModel,
+                                IsRecent = !contactListResponseMessage.IsGetall
+                            };
+                            lstContact.Add(contactDb);
+                        });
+                        //Update all received contacts
+                        await new ScheduleBusiness().UpsertContactsAsync(lstContact, contactListResponseMessage.IsGetall);
+
                         _logger.LogInformation($"Send contact list back to UI {contactSource.ConnectionId} from robot {mess.Sender}");
                         await contactSource.SendMessageAsync(Message.Utils.CreateSendMessage<ContactListResponseMessage>(
                             contactSource.ConnectionId, 

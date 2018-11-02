@@ -11,6 +11,7 @@ using OpenQA.Selenium.Support.UI;
 using Client.Automation;
 using System.Linq;
 using OpenQA.Selenium.Interactions;
+using System.Text.RegularExpressions;
 
 namespace Client.Automation
 {
@@ -41,22 +42,68 @@ namespace Client.Automation
             }
         }
 
-        public List<string> GetContactList()
+        public async Task<List<string>> GetContactList()
         {
-            List<string> lstContact = new List<string>();
+            this.RefreshPage();
+            this.WaitForElementExisted("span[data-icon='menu']");
+            //Close the group first if any
+            var closeNewGroupButtons = Driver.FindElements(By.CssSelector("button[class='_1aTxu']"));
+            if(closeNewGroupButtons.Count>0)
+            {
+                closeNewGroupButtons[0].Click();
+                await Task.Delay(500);
+            }
+            var nextGet = await GetRecentContactListFromGroup();
+            nextGet = nextGet.OrderByDescending(n => n.Key).ToList();
+            var contactList = new List<string>();
+            contactList.AddRange(nextGet.Select(f=>f.Value.Text));
+            int differenceNo = contactList.Count;
+            //Find the element
+            while(true)
+            {
+                var actions = new Actions(Driver);
+                actions.MoveToElement(nextGet[0].Value);
+                actions.Perform();
+                await Task.Delay(500);
+                nextGet = await GetRecentContactListFromGroup();
+                nextGet = nextGet.OrderByDescending(n => n.Key).ToList();
+                var intersectNo = nextGet.Select(n=>n.Value.Text).Intersect(contactList).Count();
+                differenceNo = nextGet.Count - intersectNo;
+                if(differenceNo == 0)
+                {
+                    break;
+                }
+                else
+                {
+                    var newList = nextGet.Where(n=>!contactList.Contains(n.Value.Text)).Select(n=>n.Value.Text).ToList();
+                    contactList.AddRange(newList);
+                }
+            }
+            return contactList;
+        }
+
+        public async Task<List<KeyValuePair<int, IWebElement>>> GetRecentContactListFromGroup()
+        {
+            List<KeyValuePair<int, IWebElement>> lstContact = new List<KeyValuePair<int, IWebElement>>();
             try
             {
-                var contactList = Driver.FindElements(By.CssSelector("div[class='_2wP_Y']"));
-                for (int i = 0;i<contactList.Count;i++)
+                try
                 {
-                    var contactElm = contactList[i];
-                    try
+                    var contactList = Driver.FindElements(By.CssSelector("div[class='_2wP_Y']"));
+                    for (int i = 0;i<contactList.Count;i++)
                     {
-                        var contactName = contactElm.FindElement(By.CssSelector("span[class='_1wjpf']"));
-                        lstContact.Add(contactName.Text);
-                        //Console.WriteLine(contactName.Text);
+                        var contactElm = contactList[i];
+                        try
+                        {
+                            var contactName = contactElm.FindElement(By.CssSelector("span[class='_1wjpf']"));
+                            lstContact.Add(new KeyValuePair<int, IWebElement>(GetOffSetPosition(contactElm), contactName));
+                        }
+                        catch{}
                     }
-                    catch{}
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
                 }
             }
             catch (Exception ex)
@@ -66,16 +113,23 @@ namespace Client.Automation
             return lstContact;
         }
 
+        private int GetOffSetPosition(IWebElement elm)
+        {
+            var styleString = elm.GetAttribute("style");
+            var reg = new Regex(@"(translateY)\(([0-9]+)(px)\)");
+            return int.Parse(reg.Match(styleString).Groups[2].Value);
+        }
+
         public async Task<List<string>> GetContactListAll()
         {
-            Driver.FindElement(By.CssSelector("span[data-icon='menu']")).Click();
-            await Task.Delay(500);
-            Driver.FindElement(By.CssSelector("div[title='New group']")).Click();
+            this.RefreshPage();
+            this.WaitForElementExisted("span[data-icon='chat']");
+            Driver.FindElement(By.CssSelector("span[data-icon='chat']")).Click();
             await Task.Delay(500);
             var nextGet = await GetContactListFromGroup();
             nextGet = nextGet.OrderByDescending(f=>f.Key).ToList();
             var contactList = new List<string>();
-            contactList.AddRange(nextGet.Select(f=>f.Key));
+            contactList.AddRange(nextGet.Select(f=>f.Value.Text));
             int differenceNo = contactList.Count;
             while(true)
             {                
@@ -85,7 +139,7 @@ namespace Client.Automation
                 await Task.Delay(500);
                 nextGet = await GetContactListFromGroup();
                 nextGet = nextGet.OrderByDescending(f=>f.Key).ToList();
-                var intersectNo = nextGet.Select(n=>n.Key).Intersect(contactList).Count();
+                var intersectNo = nextGet.Select(n=>n.Value.Text).Intersect(contactList).Count();
                 differenceNo = nextGet.Count - intersectNo;
                 if(differenceNo == 0)
                 {
@@ -93,27 +147,27 @@ namespace Client.Automation
                 }
                 else
                 {
-                    var newList = nextGet.Where(n=>!contactList.Contains(n.Key)).Select(n=>n.Key).ToList();
+                    var newList = nextGet.Where(n=>!contactList.Contains(n.Value.Text)).Select(n=>n.Value.Text).ToList();
                     contactList.AddRange(newList);
                 }
             }
             return contactList;
         }
 
-        public async Task<List<KeyValuePair<string, IWebElement>>> GetContactListFromGroup()
+        public async Task<List<KeyValuePair<int, IWebElement>>> GetContactListFromGroup()
         {
-            List<KeyValuePair<string, IWebElement>> lstContact = new List<KeyValuePair<string, IWebElement>>();
+            List<KeyValuePair<int, IWebElement>> lstContact = new List<KeyValuePair<int, IWebElement>>();
             try
             {
                 var contactContainerElms = Driver.FindElements(By.CssSelector("div[class='_3q4NP k1feT']"));
                 var realContactsContainers = new List<IWebElement>();
                 foreach(var contactContainerElm in contactContainerElms)
                 {
-                    if(contactContainerElm.GetAttribute("innerHTML").Contains("Add group participants")){
+                    if(contactContainerElm.GetAttribute("innerHTML").Contains("New chat")){
                         //Find all contacts
                         try
                         {
-                            var tempContainers = contactContainerElm.FindElements(By.CssSelector("div[class='_2EXPL']"));
+                            var tempContainers = contactContainerElm.FindElements(By.CssSelector("div[class='_2wP_Y']"));
                             foreach(var tempContainerElm in tempContainers)
                             {
                                 var cssSelectorLinkedList = new LinkedList<string>(new string[]{"span[class='_3TEwt']", "span[class='_1wjpf']"});
@@ -121,7 +175,7 @@ namespace Client.Automation
                                 //lstContact.Add(contactElm.GetAttribute("title"));
                                 if(contactElms.Count>0)
                                 {
-                                    lstContact.Add(new KeyValuePair<string, IWebElement>(contactElms[0].GetAttribute("title"), contactElms[0]));
+                                    lstContact.Add(new KeyValuePair<int, IWebElement>(GetOffSetPosition(tempContainerElm), contactElms[0]));
                                 }
                             }
                         }
@@ -145,6 +199,8 @@ namespace Client.Automation
         {
             try
             {
+                //Try to find contact
+
                 var contactList = Driver.FindElements(By.CssSelector("div[class='_2wP_Y']"));
                 for (int i = 0;i<contactList.Count;i++)
                 {

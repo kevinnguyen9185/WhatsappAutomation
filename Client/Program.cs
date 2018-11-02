@@ -135,8 +135,15 @@ namespace Client
             {
                 if(client.State == WebSocketState.Open)
                 {
-                    var message = await ReadMessage();
-                    await ProcessMessage(message);
+                    try
+                    {
+                        var message = await ReadMessage();
+                        await ProcessMessage(message);
+                    }
+                    catch(Exception ex)
+                    {
+                        Console.Write(ex.Message);
+                    }
                 }
                 await Task.Delay(100, cts);
                 if (cts.IsCancellationRequested)
@@ -194,7 +201,7 @@ namespace Client
                     await ProcessErrorMessage(errMess.Message);
                     break;
                 case "ContactListMessage":
-                    var contactCmd = JsonConvert.DeserializeObject<ContactListResponseMessage>(receiveMessage.Message);
+                    var contactCmd = JsonConvert.DeserializeObject<ContactListMessage>(receiveMessage.Message);
                     if(contactCmd.IsGetall)
                     {
                         var contacts = await _chatPage.GetContactListAll();
@@ -209,7 +216,7 @@ namespace Client
                     }
                     else
                     {
-                        var contacts = _chatPage.GetContactList();
+                        var contacts = await _chatPage.GetContactList();
                         await SendMessageAsync(Utils.CreateSendMessage<ContactListResponseMessage>(
                             _robotConnId,
                             new ContactListResponseMessage(){

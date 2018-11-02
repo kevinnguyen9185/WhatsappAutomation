@@ -4,6 +4,8 @@ import { UserService } from 'src/app/core/services/user.service';
 import { MatSnackBar } from '@angular/material';
 import { ChatsetupComponent } from './chatsetup/chatsetup.component';
 import { Content } from '@angular/compiler/src/render3/r3_ast';
+import { delay } from 'q';
+import { RobotService } from 'src/app/core/services/robot.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -20,6 +22,7 @@ export class DashboardComponent implements OnInit {
   @ViewChild(ChatsetupComponent) chatsetupComponent:ChatsetupComponent;
 
   constructor(private userService: UserService,
+    private robotService: RobotService,
     public snackBar:MatSnackBar) { 
     this.userService.getTempSchedule().Username = localStorage.getItem('phoneno');
     this.loadListSchedule();
@@ -113,7 +116,22 @@ export class DashboardComponent implements OnInit {
 
   runSchedule(id:string){
     if(confirm(`This will run ${id}`)){
-      //do something
+      var schedule = this.schedules.find(s=>s._id==id);
+      var self = this;
+      if(schedule){
+        schedule.contacts.forEach(c=>{
+          delay(1000).then(()=>{
+            var imgs = [];
+            if(schedule.imageUploads){
+              schedule.imageUploads.forEach((v,i)=>{
+                imgs.push(v.path);
+              });
+            }
+            var sendChatMess = new SendChatMessage(c, schedule.chatMessage, imgs);
+            this.robotService.sendMessage(sendChatMess, 'SendChatMessage')
+          });
+        });
+      }
     }
   }
 
@@ -135,4 +153,12 @@ export class DashboardComponent implements OnInit {
 export class Photo {
   path:string;
   content:string;
+}
+
+export class SendChatMessage{
+  constructor(
+    public ContactName:string,
+    public ChatMessage:string,
+    public ImagePaths:string[]
+  ){}
 }
