@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { RobotService } from 'src/app/core/services/robot.service';
 import { Subscription } from 'rxjs';
-import { UserService, Schedule } from 'src/app/core/services/user.service';
+import { UserService } from 'src/app/core/services/user.service';
 
 @Component({
   selector: 'app-selectcontact',
@@ -19,7 +19,8 @@ export class SelectcontactComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.userService.getContacts(localStorage.getItem('phoneno')).subscribe(result=>{
+    this.userService.getContacts(localStorage.getItem('phoneno')).subscribe(
+      result=>{
       //console.log(result);
       result.map((v)=>{
         var foundcontact = this.allcontacts.find(c=>c.contact == v.contactName);
@@ -32,6 +33,28 @@ export class SelectcontactComponent implements OnInit, OnDestroy {
           foundcontact.isrecent = v.isRecent;
         }
       });
+    },
+    error=>{
+      alert('Error when getting contact list. Please try again later');
+    });
+  }
+
+  public setSelectedContactList(){
+    //After found contact. Check if edit is active
+    if(this.userService.getTempSchedule()._id){
+      var schedule = this.userService.getTempSchedule();
+      schedule.contacts.forEach((v,i)=>{
+        this.selectcontact(v);
+      });
+    } else {
+      this.updateContactList();
+    }
+  }
+
+  public updateContactList(){
+    this.userService.getTempSchedule().contacts = [];
+    this.selectedcontacts.forEach(c=>{
+      this.userService.getTempSchedule().contacts.push(c.contact);
     });
   }
 
@@ -45,7 +68,7 @@ export class SelectcontactComponent implements OnInit, OnDestroy {
     });
   }
 
-  selectAllRecentContacts(){
+  public selectAllRecentContacts(){
     var arr = [];
     this.allcontacts.forEach(c=>{
       if(c.isrecent){
@@ -57,6 +80,16 @@ export class SelectcontactComponent implements OnInit, OnDestroy {
     });
   }
 
+  public removeAllRecentContacts(){
+    var arr = [];
+    this.selectedcontacts.forEach(c=>{
+      arr.push(c.contact);
+    });
+    arr.forEach(c=>{
+      this.removeselected(c);
+    })
+  }
+
   refreshContactList(){
     this.robotService.getContactList(true);
   }
@@ -64,24 +97,19 @@ export class SelectcontactComponent implements OnInit, OnDestroy {
   removeselected(contactName){
     var idx = this.selectedcontacts.findIndex(c=>c.contact==contactName);
     var contact = this.selectedcontacts.find(c=>c.contact==contactName);
-    this.selectedcontacts.splice(idx,1);
-    this.allcontacts.push(contact);
-    this.userService.getTempSchedule().Contacts = [];
-    this.selectedcontacts.forEach(c=>{
-      this.userService.getTempSchedule().Contacts.push(c.contact);
-    });
-    
+    if(contact){
+      this.selectedcontacts.splice(idx,1);
+      this.allcontacts.push(contact);
+    }
   }
 
   selectcontact(contactName){
     var idx = this.allcontacts.findIndex(c=>c.contact==contactName);
     var contact = this.allcontacts.find(c=>c.contact==contactName);
-    this.allcontacts.splice(idx,1);
-    this.selectedcontacts.push(contact);
-    this.userService.getTempSchedule().Contacts = [];
-    this.selectedcontacts.forEach(c=>{
-      this.userService.getTempSchedule().Contacts.push(c.contact);
-    });
+    if(contact){
+      this.allcontacts.splice(idx,1);
+      this.selectedcontacts.push(contact);
+    }
   }
 
   ngAfterViewInit() {

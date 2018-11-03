@@ -6,6 +6,9 @@
           <mat-icon>schedule</mat-icon>
           <span>&nbsp;{{schedule.willSendDate}}</span>
           <span class="spacer"></span>
+          <button mat-icon-button color="primary" (click)="editSchedule(schedule)" [disabled]="schedule.issent">
+            <mat-icon aria-label="Click to edit">edit</mat-icon>
+          </button>
           <button mat-icon-button color="primary" (click)="runSchedule(schedule._id)" [disabled]="schedule.issent">
             <mat-icon aria-label="Click to run immedieately">play_arrow</mat-icon>
           </button>
@@ -64,7 +67,7 @@
     </button>
   </div>
   <div>
-    <button mat-raised-button color="primary" (click)="proceedSchedule()" >
+    <button mat-raised-button color="primary" (click)="onNext()" >
       <mat-icon aria-label="Contacts">{{butProccedScheduleIcon}}</mat-icon>
       {{butProccedScheduleText}}
     </button>

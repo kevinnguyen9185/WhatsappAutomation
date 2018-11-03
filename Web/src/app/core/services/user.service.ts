@@ -77,12 +77,12 @@ export class UserService {
 
 export class Schedule{
   constructor(
-    public Id:number,
-    public Username:string,
-    public Contacts:string[],
-    public ChatMessage:string,
-    public PathImages:string[],
-    public WillSendDate:Date,
-    public IsSent:boolean
+    public _id:string,
+    public username:string,
+    public contacts:string[],
+    public chatMessage:string,
+    public pathImages:string[],
+    public willSendDate:Date,
+    public isSent:boolean
   ) {}
 }

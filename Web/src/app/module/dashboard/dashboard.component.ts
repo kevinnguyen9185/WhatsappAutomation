@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { SelectcontactComponent } from './selectcontact/selectcontact.component';
-import { UserService } from 'src/app/core/services/user.service';
+import { UserService, Schedule } from 'src/app/core/services/user.service';
 import { MatSnackBar } from '@angular/material';
 import { ChatsetupComponent } from './chatsetup/chatsetup.component';
 import { Content } from '@angular/compiler/src/render3/r3_ast';
@@ -24,7 +24,7 @@ export class DashboardComponent implements OnInit {
   constructor(private userService: UserService,
     private robotService: RobotService,
     public snackBar:MatSnackBar) { 
-    this.userService.getTempSchedule().Username = localStorage.getItem('phoneno');
+    this.userService.getTempSchedule().username = localStorage.getItem('phoneno');
     this.loadListSchedule();
   }
 
@@ -62,6 +62,17 @@ export class DashboardComponent implements OnInit {
   ngOnInit() {
   }
 
+  onNext(){
+    if(this.step==0){
+      this.userService.setTempSchedule(new Schedule(null, null, [], null, [], null, null));
+      this.selectcontactComponent.removeAllRecentContacts();
+      this.selectcontactComponent.setSelectedContactList();
+    } else if (this.step==1){
+      this.selectcontactComponent.setSelectedContactList();
+    }
+    this.proceedSchedule();
+  }
+
   proceedSchedule() {
     this.step++;
     switch(this.step){
@@ -75,7 +86,9 @@ export class DashboardComponent implements OnInit {
         break;
       case 2:
         var tempSchedule = this.userService.getTempSchedule();
-        if(tempSchedule.Contacts && tempSchedule.Contacts.length>0){
+        this.selectcontactComponent.setSelectedContactList();
+        this.chatsetupComponent.loadInfoWhenEdit();
+        if(tempSchedule.contacts && tempSchedule.contacts.length>0){
           this.butProccedScheduleIcon = 'save';
           this.butProccedScheduleText = 'SAVE SCHEDULE'
         } else{
@@ -112,6 +125,24 @@ export class DashboardComponent implements OnInit {
 
   proceedScheduleBack(){
     this.step--;
+    switch(this.step){
+      case 0:
+        this.butProccedScheduleIcon = 'navigate_next';
+        this.butProccedScheduleText = 'Create schedule';
+        break;
+      case 1:
+        this.butProccedScheduleIcon = 'navigate_next';  
+        this.butProccedScheduleText = 'Setup message and photos';
+        break;
+    }
+  }
+
+  editSchedule(schedule:Schedule){
+    this.userService.setTempSchedule(schedule);
+    this.selectcontactComponent.removeAllRecentContacts();
+    this.selectcontactComponent.setSelectedContactList();
+    this.step=0;
+    this.proceedSchedule();
   }
 
   runSchedule(id:string){
@@ -122,8 +153,8 @@ export class DashboardComponent implements OnInit {
         schedule.contacts.forEach(c=>{
           delay(1000).then(()=>{
             var imgs = [];
-            if(schedule.imageUploads){
-              schedule.imageUploads.forEach((v,i)=>{
+            if(schedule.photos){
+              schedule.photos.forEach((v,i)=>{
                 imgs.push(v.path);
               });
             }

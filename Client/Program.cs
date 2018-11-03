@@ -33,6 +33,8 @@ namespace Client
         public static string SharedSelFolder = "";
         static async Task Main(string[] args)
         {
+            // await Test();
+            // return;
             var app = new CommandLineApplication();
             var selFolderOtions = app.Option("--selfolder <selfolder>", "add folder", CommandOptionType.SingleValue);
             app.OnExecute(() => {
@@ -102,7 +104,11 @@ namespace Client
             // _chatPage.GoTo("file:///Users/kevinng/Desktop/WhatsApp.htm");
             // var contacts = _chatPage.GetContactList();
             // var tobyContact = contacts.FirstOrDefault(c => c=="Toby");
-            // await _chatPage.SendWhatsappMess(tobyContact, "test thoi Bi oi");
+            _chatPage = new ChatPage("WhatsApp");
+            _chatPage.GoTo("https://web.whatsapp.com/");
+            await Task.Delay(15000);
+            await _chatPage.SendWhatsappMessByFindingContact("Toby", "test thoi Bi oi", new string[]{});
+            Console.ReadLine();
         }
 
         static async Task CheckLoginStatus(CancellationToken cts)
@@ -231,7 +237,7 @@ namespace Client
                     var sendchatMessage = JsonConvert.DeserializeObject<SendChatMessage>(receiveMessage.Message);
                     if(_chatPage.IsLogin)
                     {
-                        await _chatPage.SendWhatsappMess(
+                        await _chatPage.SendWhatsappMessByFindingContact(
                             sendchatMessage.ContactName, 
                             sendchatMessage.ChatMessage, 
                             sendchatMessage.ImagePaths.ToArray()

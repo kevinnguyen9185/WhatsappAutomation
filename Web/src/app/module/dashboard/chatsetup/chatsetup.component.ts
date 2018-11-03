@@ -3,7 +3,7 @@ import { Subscription, Observable, Subject } from 'rxjs';
 import { Ng2ImgMaxService } from 'ng2-img-max';
 import { RobotService } from 'src/app/core/services/robot.service';
 import { UploadFile, UploadEvent, FileSystemFileEntry } from 'ngx-file-drop';
-import { UserService } from 'src/app/core/services/user.service';
+import { UserService, Schedule } from 'src/app/core/services/user.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material';
 import { stringify } from 'querystring';
@@ -45,6 +45,11 @@ export class ChatsetupComponent implements OnInit {
 
   }
 
+  public loadInfoWhenEdit(){
+    var schedule = this.userService.getTempSchedule();
+    this.loadImages(schedule);
+  }
+
   public saveSchedule():Observable<boolean>{
     var subj = new Subject<boolean>();
     if(this.chatMessage.trim().length==0) {
@@ -61,6 +66,15 @@ export class ChatsetupComponent implements OnInit {
     return this.uploadImage();
   }
 
+  loadImages(schedule:any){
+    this.imageUploads = [];
+    if(schedule.photos){
+      schedule.photos.forEach(photo=>{
+        this.imageUploads.push(photo.content);
+      });
+    }
+  }
+
   private uploadImage():Observable<boolean>{
     var subj = new Subject<boolean>();
     var img = this.imageUploads.pop();
@@ -75,10 +89,10 @@ export class ChatsetupComponent implements OnInit {
         return subj.asObservable();
       });
     } else {
-      this.userService.getTempSchedule().ChatMessage = this.chatMessage;
-      this.userService.getTempSchedule().WillSendDate = new Date(this.date.toLocaleString());
-      this.userService.getTempSchedule().PathImages = this.imageFileUploaded;
-      this.userService.getTempSchedule().IsSent = false;
+      this.userService.getTempSchedule().chatMessage = this.chatMessage;
+      this.userService.getTempSchedule().willSendDate = new Date(this.date.toLocaleString());
+      this.userService.getTempSchedule().pathImages = this.imageFileUploaded;
+      this.userService.getTempSchedule().isSent = false;
       this.userService.upsertschedule(this.userService.getTempSchedule()).subscribe(result=>{
         if(result){
           this.isSaving=false;

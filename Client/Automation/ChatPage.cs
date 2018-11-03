@@ -125,7 +125,7 @@ namespace Client.Automation
             this.RefreshPage();
             this.WaitForElementExisted("span[data-icon='chat']");
             Driver.FindElement(By.CssSelector("span[data-icon='chat']")).Click();
-            await Task.Delay(500);
+            await Task.Delay(300);
             var nextGet = await GetContactListFromGroup();
             nextGet = nextGet.OrderByDescending(f=>f.Key).ToList();
             var contactList = new List<string>();
@@ -136,7 +136,7 @@ namespace Client.Automation
                 var actions = new Actions(Driver);
                 actions.MoveToElement(nextGet[0].Value);
                 actions.Perform();
-                await Task.Delay(500);
+                await Task.Delay(300);
                 nextGet = await GetContactListFromGroup();
                 nextGet = nextGet.OrderByDescending(f=>f.Key).ToList();
                 var intersectNo = nextGet.Select(n=>n.Value.Text).Intersect(contactList).Count();
@@ -200,7 +200,6 @@ namespace Client.Automation
             try
             {
                 //Try to find contact
-
                 var contactList = Driver.FindElements(By.CssSelector("div[class='_2wP_Y']"));
                 for (int i = 0;i<contactList.Count;i++)
                 {
@@ -211,9 +210,9 @@ namespace Client.Automation
                         try
                         {
                             contactElm.Click();
-                            await Task.Delay(500);
+                            await Task.Delay(300);
                             contactElm.Click();
-                            await Task.Delay(500);
+                            await Task.Delay(300);
                             if(fileContents.Length > 0)
                             {
                                 List<string> filePath= new List<string>();
@@ -273,6 +272,86 @@ namespace Client.Automation
             }
             catch(Exception ex){
                 Console.WriteLine(ex.Message);
+            }
+            return false;
+        }
+
+        public async Task<bool> SendWhatsappMessByFindingContact(string contactName, string chatMessage, string[] fileContents)
+        {
+            //Click on chat icon
+            Driver.FindElement(By.CssSelector("div[title='New chat']")).Click();
+            await Task.Delay(500);
+            //Find contact
+            var searchBoxElm = Driver.FindElement(By.CssSelector("input[class='jN-F5 copyable-text selectable-text']"));
+            searchBoxElm.SendKeys(contactName);
+            await Task.Delay(500);
+            var contactList = Driver.FindElements(By.CssSelector("div[class='_2wP_Y']"));
+            for (int i = 0;i<contactList.Count;i++)
+            {
+                var contactElm = contactList[i];
+                var htmlContent = contactElm.GetAttribute("innerHTML");
+                if(htmlContent.Contains(contactName))
+                {
+                    contactElm.Click();
+                    await Task.Delay(300);
+                    try
+                    {
+                        if(fileContents.Length > 0)
+                        {
+                            List<string> filePath= new List<string>();
+                            //Save file to local disk
+                            for (int j = 0;j<fileContents.Length;j++)
+                            {
+                                //If file item is filepath
+                                var filecontent = fileContents[j];
+                                var outGuidResult = Guid.Empty;
+                                Guid.TryParse(filecontent.Replace(".png",""), out outGuidResult);
+                                if(outGuidResult!=Guid.Empty)
+                                {
+                                    String hostpath = Path.Combine(GetSelSharedFolder(), "robot_images");
+                                    filePath.Add(Path.Combine(hostpath, filecontent));
+                                }
+                                else
+                                {
+                                    var fileItem =await SaveBase64ToLocal(filecontent);
+                                    filePath.Add(fileItem);
+                                    Console.WriteLine($"Temp file saved {fileItem}");
+                                }
+                            }
+                            //Append image
+                            await OpenLocalFile(filePath.ToArray());
+                            await Task.Delay(500);
+                            var chatboxElm = Driver.FindElement(By.CssSelector("div[class='_2S1VP copyable-text selectable-text']"));
+                            //Console.WriteLine("Chat box found");
+                            chatboxElm.SendKeys(Keys.Enter);
+                            await Task.Delay(2000);
+                            chatboxElm = Driver.FindElement(By.CssSelector("div[class='_2S1VP copyable-text selectable-text']"));
+                            chatboxElm.SendKeys(chatMessage);
+                            await Task.Delay(500);
+                            chatboxElm.SendKeys(Keys.Enter);
+                            //_3hV1n yavlE
+                            // var sendWithImgBut = Driver.FindElementByCssSelector("div[class='_3hV1n yavlE']");
+                            // //Console.WriteLine("Found button and click");
+                            // sendWithImgBut.Click();
+                            //Driver.GetScreenshot().SaveAsFile($"/Users/kevinng/Ansarada/Selenium_docker/Chuanbigui_{Guid.NewGuid().ToString()}.png",ScreenshotImageFormat.Png);
+                            
+                        }
+                        else
+                        {
+                            var chatboxElm = Driver.FindElement(By.CssSelector("div[class='_2S1VP copyable-text selectable-text']"));
+                            //Append text
+                            chatboxElm.SendKeys(chatMessage);
+                            chatboxElm.SendKeys(Keys.Return);
+                        }
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        return false;
+                    }
+                }
+
             }
             return false;
         }
