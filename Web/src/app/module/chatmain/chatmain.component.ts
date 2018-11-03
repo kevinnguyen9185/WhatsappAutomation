@@ -56,10 +56,10 @@ export class ChatmainComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.pairRobotSub.unsubscribe();
-    this.isOrphanedSub.unsubscribe();
-    this.isOpenSub.unsubscribe();
-    this.isRobotLoginSub.unsubscribe();
+    if(this.pairRobotSub) this.pairRobotSub.unsubscribe();
+    if(this.isOrphanedSub) this.isOrphanedSub.unsubscribe();
+    if(this.isOpenSub) this.isOpenSub.unsubscribe();
+    if(this.isRobotLoginSub) this.isRobotLoginSub.unsubscribe();
   }
 
   public pairWithRobot(){

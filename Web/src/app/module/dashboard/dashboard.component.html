@@ -4,7 +4,7 @@
       <mat-card-title>
         <mat-toolbar color="primary" [class]="schedule.issent?'sent_bar':'notsent_bar'">
           <mat-icon>schedule</mat-icon>
-          <span>&nbsp;{{schedule.willSendDate}}</span>
+          <span>&nbsp;{{schedule.willSendDate.toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric', hour:'numeric'})}}</span>
           <span class="spacer"></span>
           <button mat-icon-button color="primary" (click)="editSchedule(schedule)" [disabled]="schedule.issent">
             <mat-icon aria-label="Click to edit">edit</mat-icon>

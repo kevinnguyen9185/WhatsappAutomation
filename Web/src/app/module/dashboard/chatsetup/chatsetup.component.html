@@ -7,7 +7,7 @@
     <br>
     <hr>
     <div fxLayout="row wrap" fxLayoutGap="5">
-      <div fxFlex="19" *ngFor="let imageData of imageUploads">
+      <div fxFlex="19" *ngFor="let imageData of imageToUploads">
         <div fxLayout="column" fxLayoutAlign="top right">
           <div fxFlex="100">
             <button mat-icon-button (click)="removeImage(imageData.Path)">

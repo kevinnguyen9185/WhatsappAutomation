@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { SelectcontactComponent } from './selectcontact/selectcontact.component';
 import { UserService, Schedule } from 'src/app/core/services/user.service';
 import { MatSnackBar } from '@angular/material';
@@ -6,17 +6,19 @@ import { ChatsetupComponent } from './chatsetup/chatsetup.component';
 import { Content } from '@angular/compiler/src/render3/r3_ast';
 import { delay } from 'q';
 import { RobotService } from 'src/app/core/services/robot.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   private step:number = 0;
   butProccedScheduleText:string = 'Create schedule';
   butProccedScheduleIcon:string = 'navigate_next';
   disableButtonProcess:boolean = false;
+  private savingSub:Subscription;
   private schedules:any[] = [];
   @ViewChild(SelectcontactComponent) selectcontactComponent:SelectcontactComponent;
   @ViewChild(ChatsetupComponent) chatsetupComponent:ChatsetupComponent;
@@ -48,7 +50,8 @@ export class DashboardComponent implements OnInit {
             schedule.photos.push(photo);
           });
         }
-        schedule.willSendDate = new Date(s.willSendDate).toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'numeric'});
+        schedule.willSendDate = new Date(s.willSendDate);
+        //.toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'numeric'});
         this.schedules.push(schedule);
       });
       if(this.schedules.length>=5){
@@ -62,9 +65,15 @@ export class DashboardComponent implements OnInit {
   ngOnInit() {
   }
 
+  ngOnDestroy(){
+    if(this.savingSub){
+      this.savingSub.unsubscribe();
+    }
+  }
+
   onNext(){
     if(this.step==0){
-      this.userService.setTempSchedule(new Schedule(null, null, [], null, [], null, null));
+      this.userService.setTempSchedule(new Schedule(null, localStorage.getItem('phoneno'), [], null, [], null, null));
       this.selectcontactComponent.removeAllRecentContacts();
       this.selectcontactComponent.setSelectedContactList();
     } else if (this.step==1){
@@ -97,7 +106,8 @@ export class DashboardComponent implements OnInit {
         }
         break;
       case 3:
-        this.chatsetupComponent.saveSchedule().subscribe(result=>{
+      //If saving success
+        this.savingSub = this.chatsetupComponent.$resultSavingStatus.subscribe(result=>{
           if(result){
             this.step = 0;
             this.butProccedScheduleIcon = 'navigate_next';
@@ -107,6 +117,7 @@ export class DashboardComponent implements OnInit {
             this.step--;
           }
         });
+        this.chatsetupComponent.saveSchedule();
         break;
     }
   }

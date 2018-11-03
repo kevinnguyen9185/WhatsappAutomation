@@ -19,8 +19,9 @@ export class ChatsetupComponent implements OnInit {
   contactSub:Subscription;
   contactCheckedAll = false;
   chatMessage = '';
-  imageUploads:ImageUpload[];
+  imageToUploads:ImageUpload[];
   imageFileUploaded: string[];
+  imageToProcess:ImageUpload[];
   date: Date = new Date();
   settings = {
       bigBanner: true,
@@ -29,13 +30,17 @@ export class ChatsetupComponent implements OnInit {
       defaultOpen: false
   }
   isSaving = false;
+  beforeChangeSchedule:Schedule = null;
+  private subjectSavingStatus:Subject<boolean> = new Subject<boolean>();
+  $resultSavingStatus:Observable<boolean> = this.subjectSavingStatus.asObservable();
 
   constructor(private robotService: RobotService,
     private userService: UserService,
     private ng2ImgMax: Ng2ImgMaxService,
     public snackBar: MatSnackBar) {
-      this.imageUploads = [];
+      this.imageToUploads = [];
       this.imageFileUploaded = [];
+      this.imageToProcess = [];
   }
 
   ngOnInit() {
@@ -47,61 +52,77 @@ export class ChatsetupComponent implements OnInit {
 
   public loadInfoWhenEdit(){
     var schedule = this.userService.getTempSchedule();
-    this.loadImages(schedule);
+    if(schedule._id){
+      this.beforeChangeSchedule = JSON.parse(JSON.stringify(schedule));
+      this.loadImages(schedule);
+      this.chatMessage = schedule.chatMessage;
+      this.date = new Date(schedule.willSendDate);
+    }
   }
 
-  public saveSchedule():Observable<boolean>{
+  public saveSchedule(){
     var subj = new Subject<boolean>();
     if(this.chatMessage.trim().length==0) {
       alert('You must type something to send');
-      subj.next(false);
-      return subj.asObservable();
+      return;
     }
     if(this.date <= new Date()) {
       alert('The date must be in future');
-      subj.next(false);
-      return subj.asObservable();
+      return;
     }
     this.isSaving=true;
-    return this.uploadImage();
+    this.imageToProcess = JSON.parse(JSON.stringify(this.imageToUploads));
+    this.uploadImage();
   }
 
   loadImages(schedule:any){
-    this.imageUploads = [];
+    this.imageToUploads = [];
     if(schedule.photos){
       schedule.photos.forEach(photo=>{
-        this.imageUploads.push(photo.content);
+        //this.imageUploads.push(photo.content);
+        if(!photo.content){
+          this.userService.getPhoto(photo.path).subscribe(data=>{
+            photo.content = `data:image/png;base64,${data.imageBase64}`;
+            this.imageToUploads.push(new ImageUpload(photo.content, photo.path));
+          });
+        } else {
+          this.imageToUploads.push(new ImageUpload(photo.content, photo.path));
+        }
       });
     }
   }
 
-  private uploadImage():Observable<boolean>{
-    var subj = new Subject<boolean>();
-    var img = this.imageUploads.pop();
+  private uploadImage(){
+    var img = this.imageToProcess.pop();
     if(img){
-      var imgContent = img.Content.split(',').pop();
-      this.userService.uploadFile(imgContent).subscribe(result=>{
-        this.imageFileUploaded.push(result.imagePath);
+      if(!img.Path){
+        var imgContent = img.Content.split(',').pop();
+        this.userService.uploadFile(imgContent).subscribe(result=>{
+          this.imageFileUploaded.push(result.imagePath);
+          this.uploadImage();
+        },
+        (err:HttpErrorResponse)=>{
+          alert('error while uploading. Please try again later');
+        });
+      } else {
+        this.imageFileUploaded.push(img.Path);
         this.uploadImage();
-      },
-      (err:HttpErrorResponse)=>{
-        subj.next(false);
-        return subj.asObservable();
-      });
+      }
     } else {
       this.userService.getTempSchedule().chatMessage = this.chatMessage;
-      this.userService.getTempSchedule().willSendDate = new Date(this.date.toLocaleString());
+      this.userService.getTempSchedule().willSendDate = new Date(this.date.toString());
       this.userService.getTempSchedule().pathImages = this.imageFileUploaded;
       this.userService.getTempSchedule().isSent = false;
       this.userService.upsertschedule(this.userService.getTempSchedule()).subscribe(result=>{
         if(result){
           this.isSaving=false;
-          subj.next(true);
-          return subj.asObservable();
+          this.subjectSavingStatus.next(true);
         }
+      }, error=>{
+        this.isSaving=false;
+        this.subjectSavingStatus.next(false);
       });
     }
-    return subj.asObservable();
   }
 
   public files: UploadFile[] = [];
@@ -123,12 +144,12 @@ export class ChatsetupComponent implements OnInit {
             
             reader.onloadend = function() {
               var base64data = reader.result.toString();
-              var imgUpload = new ImageUpload(base64data, file.name);
-              if (self.imageUploads.length>=10){
+              var imgUpload = new ImageUpload(base64data, null);
+              if (self.imageToUploads.length>=10){
                 alert('Cannot upload more than 10 files');
                 return;
               }
-              self.imageUploads.push(imgUpload);
+              self.imageToUploads.push(imgUpload);
             }
           });
         });
@@ -137,9 +158,9 @@ export class ChatsetupComponent implements OnInit {
   }
 
   removeImage(path:string){
-    this.imageUploads.forEach((item,index)=>{
+    this.imageToUploads.forEach((item,index)=>{
       if(item.Path.toLowerCase()==path.toLocaleLowerCase()){
-        this.imageUploads.splice(index,1);
+        this.imageToUploads.splice(index,1);
       }
     });
   }

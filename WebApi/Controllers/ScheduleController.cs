@@ -27,7 +27,7 @@ namespace WebApi.Controllers
         public IActionResult Upsert([FromBody] Schedule schedule)
         {   
             var modelSchedule = new Business.Models.Schedule(){
-                _id = schedule.Id,
+                _id = schedule._id,
                 Username = schedule.Username,
                 Contacts = schedule.Contacts,
                 ChatMessage = schedule.ChatMessage,
