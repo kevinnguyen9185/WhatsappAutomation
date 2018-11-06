@@ -14,12 +14,12 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit, OnDestroy {
-  private step:number = 0;
+  step:number = 0;
   butProccedScheduleText:string = 'Create schedule';
   butProccedScheduleIcon:string = 'navigate_next';
   disableButtonProcess:boolean = false;
   private savingSub:Subscription;
-  private schedules:any[] = [];
+  schedules:any[] = [];
   @ViewChild(SelectcontactComponent) selectcontactComponent:SelectcontactComponent;
   @ViewChild(ChatsetupComponent) chatsetupComponent:ChatsetupComponent;
 
