@@ -61,13 +61,13 @@
 <br>
 <div fxLayout="row wrap" class="button-row">
   <div [hidden]="step==0">
-    <button mat-raised-button color="primary" (click)="proceedScheduleBack()">
+    <button mat-raised-button color="primary" (click)="goBack()">
       <mat-icon aria-label="Contacts">navigate_before</mat-icon>
       Go back
     </button>
   </div>
   <div>
-    <button mat-raised-button color="primary" (click)="onNext()" >
+    <button mat-raised-button color="primary" (click)="goNext()" >
       <mat-icon aria-label="Contacts">{{butProccedScheduleIcon}}</mat-icon>
       {{butProccedScheduleText}}
     </button>

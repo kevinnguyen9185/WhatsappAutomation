@@ -98,14 +98,14 @@ export class ChatsetupComponent implements OnInit {
       if(!img.Path){
         var imgContent = img.Content.split(',').pop();
         this.userService.uploadFile(imgContent).subscribe(result=>{
-          this.imageFileUploaded.push(result.imagePath);
+          this.insertUniqueImageUploaded(result.imagePath);
           this.uploadImage();
         },
         (err:HttpErrorResponse)=>{
           alert('error while uploading. Please try again later');
         });
       } else {
-        this.imageFileUploaded.push(img.Path);
+        this.insertUniqueImageUploaded(img.Path);
         this.uploadImage();
       }
     } else {
@@ -158,11 +158,19 @@ export class ChatsetupComponent implements OnInit {
   }
 
   removeImage(path:string){
-    this.imageToUploads.forEach((item,index)=>{
-      if(item.Path.toLowerCase()==path.toLocaleLowerCase()){
-        this.imageToUploads.splice(index,1);
-      }
-    });
+    this.imageFileUploaded.splice(this.imageFileUploaded.findIndex(i=>i==path),1);
+    this.imageToUploads.splice(this.imageToUploads.findIndex(i=>i.Path == path),1);
+    // this.imageToUploads.forEach((item,index)=>{
+    //   if(item.Path.toLowerCase()==path.toLocaleLowerCase()){
+    //     this.imageToUploads.splice(index,1);
+    //   }
+    // });
+  }
+
+  insertUniqueImageUploaded(value:string){
+    if(!this.imageFileUploaded.find(r=>r==value)){
+      this.imageFileUploaded.push(value);
+    }
   }
  
   public fileOver(event){

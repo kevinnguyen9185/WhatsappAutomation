@@ -31,8 +31,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private loadListSchedule(){
-    this.schedules = [];
     this.userService.listschedule(localStorage.getItem('phoneno')).subscribe(result=>{
+      this.schedules = [];
       result.schedules.forEach(s => {
         var schedule:any = {};
         schedule._id = s._id;
@@ -71,17 +71,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  onNext(){
-    if(this.step==0){
-      this.userService.setTempSchedule(new Schedule(null, localStorage.getItem('phoneno'), [], null, [], null, null));
-      this.selectcontactComponent.removeAllRecentContacts();
-      this.selectcontactComponent.setSelectedContactList();
-    } else if (this.step==1){
-      this.selectcontactComponent.setSelectedContactList();
-    }
-    this.proceedSchedule();
-  }
-
   proceedSchedule() {
     this.step++;
     switch(this.step){
@@ -90,12 +79,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.butProccedScheduleText = 'Create schedule';
         break;
       case 1:
+        if(!this.isEditMode()){
+          this.selectcontactComponent.loadEmptyInfo();
+        } else{
+          this.selectcontactComponent.loadEditInfo();
+        }
         this.butProccedScheduleIcon = 'navigate_next';  
         this.butProccedScheduleText = 'Setup message and photos';
         break;
       case 2:
         var tempSchedule = this.userService.getTempSchedule();
-        this.selectcontactComponent.setSelectedContactList();
         this.chatsetupComponent.loadInfoWhenEdit();
         if(tempSchedule.contacts && tempSchedule.contacts.length>0){
           this.butProccedScheduleIcon = 'save';
@@ -134,7 +127,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  proceedScheduleBack(){
+  goBack(){
     this.step--;
     switch(this.step){
       case 0:
@@ -150,9 +143,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   editSchedule(schedule:Schedule){
     this.userService.setTempSchedule(schedule);
-    this.selectcontactComponent.removeAllRecentContacts();
-    this.selectcontactComponent.setSelectedContactList();
-    this.step=0;
+    this.proceedSchedule();
+  }
+
+  goNext(){
+    switch(this.step){
+      case 0:
+        //If switching from Edit mode, clear all data
+        if(this.userService.getTempSchedule()._id){
+          this.userService.setTempSchedule(new Schedule(null, localStorage.getItem('phoneno'), [], null, [], null, null));
+        }
+      case 1:
+        //Step = 1 - select contact, save the contact to temp schedule then proceed
+        this.selectcontactComponent.updateContactList();
+    }
     this.proceedSchedule();
   }
 
@@ -189,6 +193,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  private isEditMode(){
+    return (this.userService.getTempSchedule()._id);
   }
 }
 

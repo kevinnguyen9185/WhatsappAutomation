@@ -39,16 +39,19 @@ export class SelectcontactComponent implements OnInit, OnDestroy {
     });
   }
 
-  public setSelectedContactList(){
+  public loadEditInfo(){
     //After found contact. Check if edit is active
     if(this.userService.getTempSchedule()._id){
+      this.removeAllRecentContacts();
       var schedule = this.userService.getTempSchedule();
       schedule.contacts.forEach((v,i)=>{
         this.selectcontact(v);
       });
-    } else {
-      this.updateContactList();
     }
+  }
+
+  public loadEmptyInfo(){
+    this.removeAllRecentContacts();
   }
 
   public updateContactList(){
