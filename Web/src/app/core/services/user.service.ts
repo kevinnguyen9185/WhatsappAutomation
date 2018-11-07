@@ -3,10 +3,13 @@ import { RobotService } from './robot.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
+import { environment } from 'src/environments/environment.prod';
+import { HttpwraperService } from './httpwraper.service';
 
 @Injectable()
 export class UserService {
-  baseWebApiUrl:string = 'localhost:5551';
+  baseWebApiUrl:string = environment.baseApiUrl;
+  urlScheme:string = environment.urlscheme;
   private _tempSchedule:Schedule = new Schedule(null, null, null, null, null, null, null);
   private subTempSchedule = new Subject<Schedule>();
   tempScheduleResult$ = this.subTempSchedule.asObservable();
@@ -14,7 +17,7 @@ export class UserService {
   constructor(private robotService: RobotService,
     private route: ActivatedRoute, 
     private router: Router,
-    private httpClient:HttpClient) { }
+    private httpClient:HttpwraperService) { }
 
   public isLoggedIn():boolean{
     return (localStorage.getItem('logintoken')!=null && localStorage.getItem('phoneno')!=null);
@@ -33,22 +36,23 @@ export class UserService {
   }
 
   public login(username:string, password:string):Observable<any>{
-    return this.httpClient.post<any>(`http://${this.baseWebApiUrl}/api/Login`,{
+    return this.httpClient.post<any>(`${this.urlScheme}://${this.baseWebApiUrl}/api/Login`,{
       "Username":username,
       "Password":password
     });
+
   }
 
   public listschedule(username:string):Observable<any>{
-    return this.httpClient.get<any>(`http://${this.baseWebApiUrl}/api/Schedule/List?username=${username}`);
+    return this.httpClient.get<any>(`${this.urlScheme}://${this.baseWebApiUrl}/api/Schedule/List?username=${username}`);
   }
 
   public upsertschedule(schedule:Schedule):Observable<boolean>{
-    return this.httpClient.post<boolean>(`http://${this.baseWebApiUrl}/api/Schedule/Upsert`, schedule);
+    return this.httpClient.post<boolean>(`${this.urlScheme}://${this.baseWebApiUrl}/api/Schedule/Upsert`, schedule);
   }
 
   public deleteschedule(id:string):Observable<boolean>{
-    return this.httpClient.post<boolean>(`http://${this.baseWebApiUrl}/api/Schedule/Delete?id=${id}`,{
+    return this.httpClient.post<boolean>(`${this.urlScheme}://${this.baseWebApiUrl}/api/Schedule/Delete?id=${id}`,{
     });
   }
 
@@ -61,17 +65,17 @@ export class UserService {
   }
 
   public uploadFile(base64Image:string){
-    return this.httpClient.post<any>(`http://${this.baseWebApiUrl}/api/Schedule/Upload`,{
+    return this.httpClient.post<any>(`${this.urlScheme}://${this.baseWebApiUrl}/api/Schedule/Upload`,{
       base64Image
     });
   }
 
   public getPhoto(id:string){
-    return this.httpClient.get<any>(`http://${this.baseWebApiUrl}/api/Schedule/Photo?id=${id}`);
+    return this.httpClient.get<any>(`${this.urlScheme}://${this.baseWebApiUrl}/api/Schedule/Photo?id=${id}`);
   }
 
   public getContacts(userid:string){
-    return this.httpClient.get<any>(`http://${this.baseWebApiUrl}/api/Schedule/GetContacts?userid=${userid}`);
+    return this.httpClient.get<any>(`${this.urlScheme}://${this.baseWebApiUrl}/api/Schedule/GetContacts?userid=${userid}`);
   }
 }
 
