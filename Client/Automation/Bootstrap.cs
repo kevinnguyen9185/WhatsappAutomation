@@ -18,7 +18,7 @@ namespace Client.Automation
                 {
                     var capabilities = new DesiredCapabilities();
                     capabilities.SetCapability(CapabilityType.BrowserName, "chrome");
-                    capabilities.SetCapability(CapabilityType.Version, "70.0.3538.67");
+                    capabilities.SetCapability(CapabilityType.Version, "70.0.3538.77");
                     capabilities.SetCapability(CapabilityType.Platform, "LINUX");
                     _chromeDriver = new RemoteWebDriver(new Uri("http://localhost:4444/wd/hub"), capabilities);
                     //_chromeDriver = new ChromeDriver(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));

@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 
 namespace WebApi.Business
 {
@@ -10,7 +11,11 @@ namespace WebApi.Business
             {
                 var dbDir = System.Environment.GetEnvironmentVariable("LITEDB_CONN", EnvironmentVariableTarget.Machine);
                 dbDir = !string.IsNullOrEmpty(dbDir)?dbDir:"/var/Whatsappdb";
-                var connstring = $"Filename={dbDir}/Server.dat;Mode=Exclusive";
+                bool isMac = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+                var connstring = $"Filename={dbDir}/Server.dat";
+                if(isMac){
+                    connstring += ";Mode=Exclusive";
+                }
                 return connstring;
             }
         }
