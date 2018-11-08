@@ -15,13 +15,10 @@ namespace Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940 
         public void ConfigureServices(IServiceCollection services) 
         { 
-            // services.AddSingleton(new LoggerFactory()
-            //     .AddConsole());
-            // services.AddLogging();
-            services.AddCors(options=>{
-                options.AddPolicy("localhost",
-                    builder=> builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-            });
+            // services.AddCors(options=>{
+            //     options.AddPolicy("localhost",
+            //         builder=> builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+            // });
             services.AddMvc(); 
             services.AddWebSocketManager(); 
         } 
