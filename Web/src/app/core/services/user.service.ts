@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { RobotService } from './robot.service';
 import { Router, ActivatedRoute } from '@angular/router';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpwraperService } from './httpwraper.service';
