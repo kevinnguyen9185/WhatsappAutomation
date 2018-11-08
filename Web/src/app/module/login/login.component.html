@@ -4,7 +4,7 @@
     <input #phoneNumber matInput placeholder="Phone number">
   </mat-form-field>
   <mat-form-field>
-    <input #password matInput placeholder="Password">
+    <input #password matInput placeholder="Password" type="password">
   </mat-form-field>
   <button mat-raised-button color="primary" (click)="doLogin(phoneNumber.value, password.value)">Login</button>
 </div>

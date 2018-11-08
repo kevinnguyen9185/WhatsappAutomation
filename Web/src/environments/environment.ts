@@ -5,7 +5,9 @@
 export const environment = {
   production: false,
   baseApiUrl: 'localhost:5551',
-  urlscheme: 'http'
+  urlscheme: 'http',
+  baseWsurl: 'localhost:5552',
+  urlWsScheme: 'ws'
 };
 
 /*

@@ -2,6 +2,7 @@ import { Component,Injectable } from '@angular/core';
 import { Observable, fromEvent, Subject } from 'rxjs';
 import { UserService } from './user.service';
 import { delay, send } from 'q';
+import { environment } from 'src/environments/environment.prod';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,6 @@ export class RobotService {
   private static websocket: WebSocket;
   static isLoadedRecentContact:boolean = false;
   private receivedMsg: any;
-  private baseWebsocketUrl: string = `localhost:5552`;
   private static loginResultSubject = new Subject<string>();
   LoginResult$ = RobotService.loginResultSubject.asObservable();
   private static qrImageSubject = new Subject<string>();
@@ -59,7 +59,7 @@ export class RobotService {
 
   public connectWs(uiId: string, securestring:string, type='password'){
     if (RobotService.websocket==null){
-      RobotService.websocket = new WebSocket(`ws://${this.baseWebsocketUrl}/ServerSocket?connId=${localStorage.getItem('phoneno')}&logintoken=${localStorage.getItem('logintoken')}`);
+      RobotService.websocket = new WebSocket(`${environment.urlWsScheme}://${environment.baseWsurl}/ServerSocket?connId=${localStorage.getItem('phoneno')}&logintoken=${localStorage.getItem('logintoken')}`);
     } else {
       RobotService.isOpenSubject.next(true);
     }
