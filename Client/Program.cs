@@ -11,6 +11,8 @@ using Newtonsoft.Json;
 using Message.Robot;
 using System.IO;
 using Microsoft.Extensions.CommandLineUtils;
+using Serilog;
+using Serilog.Events;
 
 namespace Client
 {
@@ -52,6 +54,19 @@ namespace Client
                 Console.WriteLine("Quit the driver then close...");
                 _closing.Set();
             });
+            //Loging
+            Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .Enrich.FromLogContext()
+            .WriteTo.RollingFile(
+                Path.Combine(Directory.GetCurrentDirectory(), "Logs/Client-{Date}.log"),
+                fileSizeLimitBytes: 1_000_000,
+                shared: true,
+                flushToDiskInterval: TimeSpan.FromSeconds(2)
+            )
+            .CreateLogger();
+
             //Handle global exception
             System.AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler((sender, e)=>{
                 Console.WriteLine(e.ExceptionObject.ToString());
@@ -125,9 +140,10 @@ namespace Client
                         "robot"
                     ));
                 }
-                catch
+                catch (Exception ex)
                 {
                     Console.WriteLine("Error when check login status");
+                    Log.Error($"Error when check login status {ex.Message}");
                 }
                 await Task.Delay(1000, cts);
                 if (cts.IsCancellationRequested)
@@ -149,6 +165,7 @@ namespace Client
                     catch(Exception ex)
                     {
                         Console.Write(ex.Message);
+                        Log.Error($"{ex.Message}");
                     }
                 }
                 await Task.Delay(100, cts);

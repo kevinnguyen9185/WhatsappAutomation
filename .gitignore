@@ -8,6 +8,7 @@ project.lock.json
 .DS_Store
 *.pyc
 nupkg/
+Logs
 
 # Visual Studio Code
 .vscode

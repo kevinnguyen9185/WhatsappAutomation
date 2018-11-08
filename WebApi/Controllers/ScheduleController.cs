@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using WebApi.Business;
 using WebApi.ViewModels;
 
@@ -12,6 +13,11 @@ namespace WebApi.Controllers
     [ApiController]
     public class ScheduleController : ControllerBase
     {
+        private readonly ILogger<ScheduleController> _logger;
+        public ScheduleController(ILogger<ScheduleController> logger)
+        {
+            this._logger = logger;
+        }
         [HttpGet]
         [Route("List")]
         public IActionResult List([FromQuery] string username)

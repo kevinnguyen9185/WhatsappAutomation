@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -11,6 +12,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Serilog;
+using Serilog.Events;
 
 namespace WebApi
 {
@@ -19,6 +22,17 @@ namespace WebApi
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .Enrich.FromLogContext()
+            .WriteTo.RollingFile(
+                Path.Combine(Directory.GetCurrentDirectory(), "Logs/WebApi-{Date}.log"),
+                fileSizeLimitBytes: 1_000_000,
+                shared: true,
+                flushToDiskInterval: TimeSpan.FromSeconds(2)
+            )
+            .CreateLogger();
         }
 
         public IConfiguration Configuration { get; }
@@ -28,7 +42,7 @@ namespace WebApi
         {
             services.AddCors(options=>{
                 options.AddPolicy("localhost",
-                    builder=> builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+                    builder=> builder.AllowAnyMethod().AllowAnyHeader().WithOrigins(new string[]{"http://localhost", "http://localhost:4200"}));
             });
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }

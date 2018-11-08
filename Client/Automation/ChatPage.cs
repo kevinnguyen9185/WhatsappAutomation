@@ -12,6 +12,7 @@ using Client.Automation;
 using System.Linq;
 using OpenQA.Selenium.Interactions;
 using System.Text.RegularExpressions;
+using Serilog;
 
 namespace Client.Automation
 {
@@ -103,11 +104,13 @@ namespace Client.Automation
                 }
                 catch (Exception ex)
                 {
+                    Log.Error(ex.Message);
                     Console.WriteLine(ex.Message);
                 }
             }
             catch (Exception ex)
             {
+                Log.Error(ex.Message);
                 Console.WriteLine(ex.Message);
             }
             return lstContact;
@@ -181,7 +184,7 @@ namespace Client.Automation
                         }
                         catch(Exception ex)
                         {
-
+                            Log.Error(ex.Message);
                         }
                         lstContact = lstContact.OrderBy(l=>l.Key).ToList();
                         break;
@@ -190,6 +193,7 @@ namespace Client.Automation
             }
             catch (Exception ex)
             {
+                Log.Error(ex.Message);
                 Console.WriteLine(ex.Message);
             }
             return lstContact;
@@ -265,12 +269,14 @@ namespace Client.Automation
                         catch (Exception ex)
                         {
                             Console.WriteLine(ex.Message);
+                            Log.Error(ex.Message);
                             return false;
                         }
                     }
                 }
             }
             catch(Exception ex){
+                Log.Error(ex.Message);
                 Console.WriteLine(ex.Message);
             }
             return false;
@@ -347,6 +353,7 @@ namespace Client.Automation
                     }
                     catch (Exception ex)
                     {
+                        Log.Error(ex.Message);
                         Console.WriteLine(ex.Message);
                         return false;
                     }
@@ -437,6 +444,7 @@ namespace Client.Automation
             }
             catch(Exception ex)
             {
+                Log.Error(ex.Message);
                 Console.WriteLine(ex.Message);
             }
         }

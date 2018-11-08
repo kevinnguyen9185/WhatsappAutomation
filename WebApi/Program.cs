@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Events;
 using WebApi.Business;
 
 namespace WebApi
@@ -32,10 +34,7 @@ namespace WebApi
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
-                .UseUrls("http://*:5551")
-                .UseKestrel(options =>
-                {
-                    // Set properties and call methods on options
-                });
+                .UseSerilog()
+                .UseUrls("http://*:5551");
     }
 }
