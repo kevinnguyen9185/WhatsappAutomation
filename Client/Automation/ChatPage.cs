@@ -436,7 +436,7 @@ namespace Client.Automation
                         //Console.WriteLine("Set allow detection");
                     }
                 }
-                var inputFile = Driver.FindElement(By.CssSelector("input[accept='image/*,video/mp4,video/3gpp']"));
+                var inputFile = Driver.FindElement(By.CssSelector("input[accept='image/*,video/mp4,video/3gpp,video/quicktime']"));
                 //Console.WriteLine(inputFile.TagName);
                 inputFile.SendKeys(inputs);
                 //inputFile.SendKeys("/home/seluser/2ngo-thanh-van.jpg");
