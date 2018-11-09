@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
+using Serilog;
 
 namespace Client.Automation
 {
@@ -29,7 +30,7 @@ namespace Client.Automation
         {
             try
             {
-                
+                Log.Information("refresh QR code");
                 this.RefreshPage();
                 WaitForElementExisted("img[alt='Scan me!']");
                 string imageContent = "";
@@ -38,6 +39,7 @@ namespace Client.Automation
                 {
                     imageContent = elm.GetAttribute("src");
                 }
+                Log.Information("retrieve QR code and send back");
                 return imageContent;
             }
             catch(Exception ex)
