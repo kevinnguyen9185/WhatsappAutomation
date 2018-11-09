@@ -325,7 +325,14 @@ namespace Client.Automation
                                 if(outGuidResult!=Guid.Empty)
                                 {
                                     String hostpath = Path.Combine(GetSelSharedFolder(), "robot_images");
-                                    filePath.Add(Path.Combine(hostpath, filecontent));
+                                    if(IsRemoteDriver)
+                                    {
+                                        filePath.Add(Path.Combine(Docker_Images_Folder, filecontent));
+                                    }
+                                    else
+                                    {
+                                        filePath.Add(Path.Combine(hostpath, filecontent));
+                                    }
                                 }
                                 else
                                 {
