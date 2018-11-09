@@ -18,6 +18,8 @@ namespace Client.Automation
 {
     public class ChatPage : Page
     {
+        private const string Docker_Images_Folder = "/home/seluser";
+        private const string Local_Images_Folder = "/tmp/robot_images";
         public bool IsLogin 
         { 
             get
@@ -230,7 +232,15 @@ namespace Client.Automation
                                     if(outGuidResult!=Guid.Empty)
                                     {
                                         String hostpath = Path.Combine(GetSelSharedFolder(), "robot_images");
-                                        filePath.Add(Path.Combine(hostpath, filecontent));
+                                        if(IsRemoteDriver)
+                                        {
+                                            filePath.Add(Path.Combine(Docker_Images_Folder, filecontent));
+                                        }
+                                        else
+                                        {
+                                            filePath.Add(Path.Combine(hostpath, filecontent));
+                                        }
+                                        
                                     }
                                     else
                                     {
