@@ -1,0 +1,35 @@
+<mat-expansion-panel (opened)="loadUsers()">
+  <mat-expansion-panel-header>
+    <mat-icon aria-label="Phone">user</mat-icon>User list
+  </mat-expansion-panel-header>
+  <mat-expansion-panel *ngFor="let user of users">
+    <mat-expansion-panel-header>
+      {{user.username}}
+    </mat-expansion-panel-header>
+    <mat-form-field>
+      <input id="password{{user.id}}" matInput placeholder="Password" type="password">
+    </mat-form-field>
+    <mat-form-field>
+      <input id="confirmpassword{{user.id}}" matInput placeholder="Confirm Password" type="password">
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="changePassword(user)">Change Password</button>
+  </mat-expansion-panel>
+</mat-expansion-panel>
+<br>
+<button mat-raised-button color="primary" (click)="openCreateUser()" >
+  <mat-icon aria-label="Create User">user</mat-icon>
+  Create New User
+</button>
+<br>
+<div [hidden]="hideCreateUserDialog">
+  <mat-form-field>
+    <input #username matInput placeholder="Username" type="text">
+  </mat-form-field>
+  <mat-form-field>
+    <input #password matInput placeholder="Password" type="password">
+  </mat-form-field>
+  <mat-form-field>
+    <input #confirmpassword matInput placeholder="Confirm Password" type="password">
+  </mat-form-field>
+  <button mat-raised-button color="primary" (click)="createUser(username.value, password.value, confirmpassword.value)">Create User</button>
+</div>

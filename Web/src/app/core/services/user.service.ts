@@ -42,6 +42,18 @@ export class UserService {
 
   }
 
+  public listusers():Observable<any>{
+    return this.httpClient.get<any>(`${this.urlScheme}://${this.baseWebApiUrl}/api/User/List`);
+  }
+
+  public changepassword(user:User):Observable<any>{
+    return this.httpClient.post<any>(`${this.urlScheme}://${this.baseWebApiUrl}/api/User/Changepassword`, user);
+  }
+
+  public createuser(user:User):Observable<any>{
+    return this.httpClient.post<any>(`${this.urlScheme}://${this.baseWebApiUrl}/api/User/Newuser`, user); 
+  }
+
   public listschedule(username:string):Observable<any>{
     return this.httpClient.get<any>(`${this.urlScheme}://${this.baseWebApiUrl}/api/Schedule/List?username=${username}`);
   }
@@ -88,4 +100,13 @@ export class Schedule{
     public willSendDate:Date,
     public isSent:boolean
   ) {}
+}
+
+export class User{
+  constructor(
+    public _id:string,
+    public userName:string,
+    public password:string,
+    public loginToken:string
+  ){}
 }

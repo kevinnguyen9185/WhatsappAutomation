@@ -33,6 +33,7 @@ export class ChatsetupComponent implements OnInit {
   beforeChangeSchedule:Schedule = null;
   private subjectSavingStatus:Subject<boolean> = new Subject<boolean>();
   $resultSavingStatus:Observable<boolean> = this.subjectSavingStatus.asObservable();
+  fileToUpload: File = null;
 
   constructor(private robotService: RobotService,
     private userService: UserService,
@@ -126,6 +127,27 @@ export class ChatsetupComponent implements OnInit {
   }
 
   public files: UploadFile[] = [];
+
+  handleFileInput(fileSelecteds: FileList) {
+    var self = this;
+    for(var i=0;i<fileSelecteds.length;i++){
+      var file = fileSelecteds[i];
+      this.ng2ImgMax.compressImage(file, 0.075).subscribe(result=>{
+        let reader = new FileReader();
+        reader.readAsDataURL(result);
+        
+        reader.onloadend = function() {
+          var base64data = reader.result.toString();
+          var imgUpload = new ImageUpload(base64data, null);
+          if (self.imageToUploads.length>=10){
+            alert('Cannot upload more than 10 files');
+            return;
+          }
+          self.imageToUploads.push(imgUpload);
+        }
+      })
+    }
+  }
  
   public dropped(event: UploadEvent) {
     this.files = event.files;

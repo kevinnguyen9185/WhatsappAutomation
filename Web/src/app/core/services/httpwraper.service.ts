@@ -8,23 +8,25 @@ import { Observable } from 'rxjs';
 export class HttpwraperService {
   constructor(private http: HttpClient) {}
 
-  createAuthorizationHeader(headers: HttpHeaders) {
-    headers.append('tk', localStorage.getItem('logintoken'));
+  getAuthorizeHeader(){
+    var header = new HttpHeaders();
+    if(localStorage.getItem('logintoken')){
+      header = new HttpHeaders({
+        'tk':localStorage.getItem('logintoken')
+      })
+    };
+    return header; 
   }
 
   get<T>(url):Observable<T> {
-    let headers = new HttpHeaders();
-    this.createAuthorizationHeader(headers);
     return this.http.get<T>(url, {
-      headers: headers
+      headers: this.getAuthorizeHeader()
     });
   }
 
   post<T>(url, data):Observable<T> {
-    let headers = new HttpHeaders();
-    this.createAuthorizationHeader(headers);
     return this.http.post<T>(url, data, {
-      headers: headers
+      headers: this.getAuthorizeHeader()
     });
   }
 }

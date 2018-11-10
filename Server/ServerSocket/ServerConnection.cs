@@ -14,7 +14,6 @@ namespace Server.ServerSocket
     {
         private MessageHandler _messHandler;
         private readonly ILogger<ServerConnection> _logger;
-
         public ServerConnection(WebSocketHandler handler) : base(handler) 
         {
             _logger = new LoggerFactory().AddConsole().CreateLogger<ServerConnection>();

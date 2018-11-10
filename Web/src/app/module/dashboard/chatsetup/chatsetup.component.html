@@ -3,6 +3,7 @@
     <file-drop headertext="" (onFileDrop)="dropped($event)" 
     (onFileOver)="fileOver($event)" (onFileLeave)="fileLeave($event)">
         <span>Drag photos here (.png, .jpeg, .jpg) Maximum 10 items</span>
+        <input type="file" id="inputfile" multiple title="Click here to upload files" (change)="handleFileInput($event.target.files)" />
     </file-drop>
     <br>
     <hr>

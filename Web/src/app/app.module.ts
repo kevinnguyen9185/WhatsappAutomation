@@ -20,10 +20,12 @@ import { DashboardComponent } from './module/dashboard/dashboard.component';
 import { SelectcontactComponent } from './module/dashboard/selectcontact/selectcontact.component';
 import { ChatsetupComponent } from './module/dashboard/chatsetup/chatsetup.component';
 import { AngularDateTimePickerModule } from 'angular2-datetimepicker';
+import { AdminComponent } from './module/admin/admin.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent },
-  { path: 'chatmain',      component: ChatmainComponent }
+  { path: 'chatmain',      component: ChatmainComponent },
+  { path: 'admin',  component: AdminComponent}
 ];
 
 @NgModule({
@@ -36,7 +38,8 @@ const appRoutes: Routes = [
     ChatComponent,
     DashboardComponent,
     SelectcontactComponent,
-    ChatsetupComponent
+    ChatsetupComponent,
+    AdminComponent
   ],
   imports: [
     BrowserModule,
@@ -64,7 +67,7 @@ const appRoutes: Routes = [
     AngularDateTimePickerModule,
     MatProgressBarModule,
     RouterModule.forRoot(
-      appRoutes
+      appRoutes, {useHash: true}
     )
   ],
   providers: [HttpClient],
