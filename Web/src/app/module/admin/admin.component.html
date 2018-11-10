@@ -4,7 +4,7 @@
   </mat-expansion-panel-header>
   <mat-expansion-panel *ngFor="let user of users">
     <mat-expansion-panel-header>
-      {{user.username}}
+      {{user.username}} - {{user.robotid}}
     </mat-expansion-panel-header>
     <mat-form-field>
       <input id="password{{user.id}}" matInput placeholder="Password" type="password">

@@ -46,11 +46,11 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.userService.setLoggedIn(result.loginToken, this.phoneNumber);
         if(this.phoneNumber=='admin'){
           this.router.navigate(['/admin']);
+          this.robotService.connectWs(this.phoneNumber, result.loginToken, 'admin');
         } else {
           this.router.navigate(['/chatmain']);
           this.robotService.connectWs(this.phoneNumber, result.loginToken, 'web');
         }
-        
       } else {
         alert('Login failed');
       }

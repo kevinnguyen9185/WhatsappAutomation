@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using LiteDB;
 using WebApi.Business.Models;
 
@@ -48,13 +49,18 @@ namespace WebApi.Business
         {
             using(var db = new LiteRepository(ConnectionString))
             {
-                var user = db.Query<Users>().Where(u=>u.Username == username).FirstOrDefault();
-                if(user == null){
-                    var newuser = new Users(){
-                        Username = username,
-                        Password = password
-                    };
-                    db.Insert<Users>(newuser);
+                var newuserId = db.Query<Users>().ToEnumerable().Max(u=>u.Id);
+                if(newuserId.HasValue)
+                {
+                    var user = db.Query<Users>().Where(u=>u.Username == username).FirstOrDefault();
+                    if(user == null){
+                        var newuser = new Users(){
+                            Username = username,
+                            Password = password,
+                            Id = newuserId+1
+                        };
+                        db.Insert<Users>(newuser);
+                    }
                 }
             }
         }

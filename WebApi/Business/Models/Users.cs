@@ -9,4 +9,12 @@ namespace WebApi.Business.Models
         public DateTime LastDateLogin { get; set; }
         public string LoginToken { get; set; }
     }
+
+    public class UsersNew
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public DateTime LastDateLogin { get; set; }
+        public string LoginToken { get; set; }
+    }
 }

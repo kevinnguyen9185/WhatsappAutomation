@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { UserService, User } from 'src/app/core/services/user.service';
+import { Subscription } from 'rxjs';
+import { RobotService } from 'src/app/core/services/robot.service';
 
 @Component({
   selector: 'app-admin',
@@ -8,17 +10,37 @@ import { UserService, User } from 'src/app/core/services/user.service';
 })
 export class AdminComponent implements OnInit {
   users:any;
+  pairlist = [];
   hideCreateUserDialog:boolean = true;
-  constructor(private userService:UserService) {
+  private pairListSub:Subscription;
+  constructor(private userService:UserService,
+    private robotServide:RobotService) {
 
   }
 
   ngOnInit() {
+    this.pairListSub = this.robotServide.pairListResult$.subscribe(result=>{
+      this.pairlist = [];
+      //console.log(result);
+      JSON.parse(result).forEach(pairItem => {
+        var userName = pairItem.SourceId;
+        var robotId = pairItem.DestinationId;
+        this.pairlist.push(<any>{ username: userName, robotid: robotId});
+      });
+    });
   }
 
   loadUsers():any{
     this.userService.listusers().subscribe(result=>{
       this.users = result.users;
+      if(this.users){
+        this.users.forEach(user => {
+          var pairItem = this.pairlist.find(p=>p.username == user.username);
+          if(pairItem){
+            user.robotid = pairItem.robotid;
+          }
+        });
+      }
     }, error=>{
       alert('You are not authorized to view this');
     });

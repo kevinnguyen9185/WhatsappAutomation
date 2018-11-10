@@ -2,7 +2,7 @@ import { Component,Injectable } from '@angular/core';
 import { Observable, fromEvent, Subject } from 'rxjs';
 import { UserService } from './user.service';
 import { delay, send } from 'q';
-import { environment } from 'src/environments/environment.prod';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -29,6 +29,8 @@ export class RobotService {
   IsWsCloseResult$ = RobotService.isWsCloseSubject.asObservable();
   private static contactListSubject = new Subject<string[]>();
   contactListResult$ = RobotService.contactListSubject.asObservable();
+  private static pairListSubject = new Subject<any>();
+  pairListResult$ = RobotService.pairListSubject.asObservable();
 
   constructor() {
     
@@ -104,6 +106,9 @@ export class RobotService {
       case "ContactListResponseMessage":
         var contactListObj = JSON.parse(mess.Message);
         RobotService.contactListSubject.next(contactListObj.Contacts);
+        break;
+      case "List`1":
+        RobotService.pairListSubject.next(mess.Message);
         break;
       default:
         break;

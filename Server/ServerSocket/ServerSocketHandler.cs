@@ -134,6 +134,11 @@ namespace Server.ServerSocket
                     _logger.LogInformation($"Health check removed {p.SourceId}-{p.DestinationId}");
                 });
                 tempPairList.Clear();
+                var adminConn = await this.GetConnectionByIdAsync("admin");
+                if(adminConn!=null)
+                {
+                    await adminConn.SendMessageAsync(Utils.CreateSendMessage<List<PairRobotAndUI>>(adminConn.ConnectionId, PairController.PairList, "admin"));
+                }
                 await Task.Delay(5000, cancellationToken);
                 if (cancellationToken.IsCancellationRequested)
                     break;

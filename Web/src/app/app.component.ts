@@ -25,7 +25,11 @@ export class AppComponent implements OnDestroy {
     if (!userService.isLoggedIn()){
       this.router.navigate(['/login']);
     } else {
-      this.router.navigate(['/chatmain']);
+      if(localStorage.getItem('phoneno')=='admin'){
+        this.router.navigate(['/admin']);
+      } else {
+        this.router.navigate(['/chatmain']);
+      }
     }
   }
 
