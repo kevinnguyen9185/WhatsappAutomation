@@ -314,7 +314,7 @@ namespace Client.Automation
             _isBusySomeTaks = true;
             this.RefreshPage();
             //Click on chat icon
-            Driver.FindElement(By.CssSelector("div[title='New chat']")).Click();
+            WaitForElementExisted("div[title='New chat']").Click();
             await Task.Delay(300);
             //Find contact
             var searchBoxElm = Driver.FindElement(By.CssSelector("input[class='jN-F5 copyable-text selectable-text']"));
