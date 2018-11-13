@@ -312,6 +312,7 @@ namespace Client.Automation
         public async Task<bool> SendWhatsappMessByFindingContact(string contactName, string chatMessage, string[] fileContents)
         {
             _isBusySomeTaks = true;
+            this.RefreshPage();
             //Click on chat icon
             Driver.FindElement(By.CssSelector("div[title='New chat']")).Click();
             await Task.Delay(300);
