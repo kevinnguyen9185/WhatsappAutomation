@@ -252,9 +252,10 @@ namespace Client
                     break;
                 case "SendChatMessage":
                     var sendchatMessage = JsonConvert.DeserializeObject<SendChatMessage>(receiveMessage.Message);
+                    var isSent = false;
                     if(_chatPage.IsLogin)
                     {
-                        await _chatPage.SendWhatsappMessByFindingContact(
+                        isSent = await _chatPage.SendWhatsappMessByFindingContact(
                             sendchatMessage.ContactName, 
                             sendchatMessage.ChatMessage, 
                             sendchatMessage.ImagePaths.ToArray()
@@ -262,7 +263,7 @@ namespace Client
                     }
                     await SendMessageAsync(Utils.CreateSendMessage<SendChatResponseMessage>(
                         _robotConnId,
-                        new SendChatResponseMessage(),
+                        new SendChatResponseMessage(){IsSent=isSent, ContactName = sendchatMessage.ContactName},
                         "robot"
                     ));
                     break;

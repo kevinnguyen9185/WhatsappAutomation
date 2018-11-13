@@ -13,6 +13,7 @@ using System.Linq;
 using OpenQA.Selenium.Interactions;
 using System.Text.RegularExpressions;
 using Serilog;
+using System.Collections.ObjectModel;
 
 namespace Client.Automation
 {
@@ -311,16 +312,24 @@ namespace Client.Automation
 
         public async Task<bool> SendWhatsappMessByFindingContact(string contactName, string chatMessage, string[] fileContents)
         {
+            Console.WriteLine($"Send mess to {contactName}");
             _isBusySomeTaks = true;
-            this.RefreshPage();
+            //Check if need to click on go back button
+            var goBackButtonElms =  Driver.FindElements(By.CssSelector("button[class='_1aTxu']"));
+            if(goBackButtonElms.Count>0)
+            {
+                goBackButtonElms[0].Click();
+                await Task.Delay(100);
+            }
             //Click on chat icon
-            WaitForElementExisted("div[title='New chat']").Click();
-            await Task.Delay(300);
+            //WaitForElementExisted("div[title='New chat']").Click();
             //Find contact
             var searchBoxElm = Driver.FindElement(By.CssSelector("input[class='jN-F5 copyable-text selectable-text']"));
+            searchBoxElm.Clear();
             searchBoxElm.SendKeys(contactName);
-            await Task.Delay(300);
-            var contactList = Driver.FindElements(By.CssSelector("div[class='_2wP_Y']"));
+            await Task.Delay(1000);
+            //WaitForElementExisted("div[class='_2wP_Y']");
+            var contactList = await FindContactListContainer(5, 0);
             for (int i = 0;i<contactList.Count;i++)
             {
                 var contactElm = contactList[i];
@@ -366,10 +375,9 @@ namespace Client.Automation
                             var chatboxElm = Driver.FindElement(By.CssSelector("div[class='_2S1VP copyable-text selectable-text']"));
                             //Console.WriteLine("Chat box found");
                             chatboxElm.SendKeys(Keys.Enter);
-                            await Task.Delay(1000);
+                            await Task.Delay(500);
                             chatboxElm = Driver.FindElement(By.CssSelector("div[class='_2S1VP copyable-text selectable-text']"));
                             chatboxElm.SendKeys(chatMessage);
-                            await Task.Delay(500);
                             chatboxElm.SendKeys(Keys.Enter);
                             //_3hV1n yavlE
                             // var sendWithImgBut = Driver.FindElementByCssSelector("div[class='_3hV1n yavlE']");
@@ -400,6 +408,16 @@ namespace Client.Automation
             }
             _isBusySomeTaks = false;
             return false;
+        }
+
+        private async Task<ReadOnlyCollection<IWebElement>> FindContactListContainer(int totalWait, int noWait)
+        {
+            if(noWait>totalWait) return null;
+            await Task.Delay(500);
+            noWait ++;
+            var contactList = Driver.FindElements(By.CssSelector("div[class='_2wP_Y']"));
+            if(contactList.Count>0) return contactList;
+            else return await FindContactListContainer(totalWait, noWait);
         }
 
         private async Task<string> SaveBase64ToLocal(string base64Img)

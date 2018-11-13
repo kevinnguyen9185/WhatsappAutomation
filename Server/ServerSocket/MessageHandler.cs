@@ -198,6 +198,9 @@ namespace Server.ServerSocket
                         await chatMessSource.SendMessageAsync(Message.Utils.CreateSendMessage<SendChatResponseMessage>(
                             chatMessSource.ConnectionId, 
                             JsonConvert.DeserializeObject<SendChatResponseMessage>(mess.Message)));
+
+                        //Log sent status
+                        
                     }
                     else
                     {

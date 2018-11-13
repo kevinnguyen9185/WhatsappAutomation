@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Server.Business.Models
 {
@@ -10,6 +11,13 @@ namespace Server.Business.Models
         public string ChatMessage { get; set; }
         public string[] PathImages { get; set; }
         public DateTime WillSendDate { get; set; }
+        public bool IsSent { get; set; }
+        public List<ScheduleSentResult> ScheduleSentResults { get; set; }
+    }
+
+    public class ScheduleSentResult
+    {
+        public string ContactName { get; set; }
         public bool IsSent { get; set; }
     }
 }

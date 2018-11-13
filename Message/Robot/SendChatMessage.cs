@@ -11,5 +11,7 @@ namespace Message.Robot
 
     public class SendChatResponseMessage : BaseMessage 
     {
+        public bool IsSent { get; set; }
+        public string ContactName { get; set; }
     }
 }
