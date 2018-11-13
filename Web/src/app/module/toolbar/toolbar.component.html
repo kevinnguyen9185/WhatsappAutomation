@@ -2,5 +2,8 @@
   <mat-icon>mood</mat-icon>
   <span>&nbsp;Easy Whatsapp</span>
   <span class="spacer"></span>
-  <span>{{phoneNo}}</span>
+  <button mat-button [matMenuTriggerFor]="menu">{{phoneNo}}</button>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item (click)="logout()">Logout</button>
+  </mat-menu>
 </mat-toolbar>

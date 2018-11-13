@@ -77,7 +77,7 @@ namespace Client.Automation
             WaitForLoad();
 		}
 
-        public WebDriverWait Wait(int wait = 30, IList<Type> ignoreExceptionTypes = null)
+        public WebDriverWait Wait(int wait = 180, IList<Type> ignoreExceptionTypes = null)
 		{
 			var webDriverWait = new WebDriverWait(_driver, TimeSpan.FromSeconds(wait));
 			webDriverWait.IgnoreExceptionTypes(ignoreExceptionTypes?.ToArray() ?? new [] {

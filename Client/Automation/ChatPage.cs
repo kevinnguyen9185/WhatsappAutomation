@@ -20,6 +20,8 @@ namespace Client.Automation
     {
         private const string Docker_Images_Folder = "/home/seluser";
         private const string Local_Images_Folder = "/tmp/robot_images";
+        private bool _isBusySomeTaks = false;
+        private bool _isLogin = false;
         public bool IsLogin 
         { 
             get
@@ -34,19 +36,23 @@ namespace Client.Automation
 
         public bool CheckLoginStatus()
         {
+            if(_isBusySomeTaks) return _isLogin;
             try
             {
                 var elm = Driver.FindElement(By.CssSelector("span[data-icon='menu']"));
-                return elm != null;
+                _isLogin = elm != null;
+                return _isLogin;
             }
             catch(NoSuchElementException ex)
             {
+                _isLogin = false;
                 return false;
             }
         }
 
         public async Task<List<string>> GetContactList()
         {
+            _isBusySomeTaks = true;
             this.RefreshPage();
             this.WaitForElementExisted("span[data-icon='menu']");
             //Close the group first if any
@@ -67,7 +73,7 @@ namespace Client.Automation
                 var actions = new Actions(Driver);
                 actions.MoveToElement(nextGet[0].Value);
                 actions.Perform();
-                await Task.Delay(500);
+                await Task.Delay(200);
                 nextGet = await GetRecentContactListFromGroup();
                 nextGet = nextGet.OrderByDescending(n => n.Key).ToList();
                 var intersectNo = nextGet.Select(n=>n.Value.Text).Intersect(contactList).Count();
@@ -82,11 +88,13 @@ namespace Client.Automation
                     contactList.AddRange(newList);
                 }
             }
+            _isBusySomeTaks = false;
             return contactList;
         }
 
         public async Task<List<KeyValuePair<int, IWebElement>>> GetRecentContactListFromGroup()
         {
+            _isBusySomeTaks = true;
             List<KeyValuePair<int, IWebElement>> lstContact = new List<KeyValuePair<int, IWebElement>>();
             try
             {
@@ -115,6 +123,7 @@ namespace Client.Automation
                 Log.Error(ex.Message);
                 Console.WriteLine(ex.Message);
             }
+            _isBusySomeTaks = false;
             return lstContact;
         }
 
@@ -127,6 +136,7 @@ namespace Client.Automation
 
         public async Task<List<string>> GetContactListAll()
         {
+            _isBusySomeTaks = true;
             this.RefreshPage();
             this.WaitForElementExisted("span[data-icon='chat']");
             Driver.FindElement(By.CssSelector("span[data-icon='chat']")).Click();
@@ -156,11 +166,13 @@ namespace Client.Automation
                     contactList.AddRange(newList);
                 }
             }
+            _isBusySomeTaks = false;
             return contactList;
         }
 
         public async Task<List<KeyValuePair<int, IWebElement>>> GetContactListFromGroup()
         {
+            _isBusySomeTaks = true;
             List<KeyValuePair<int, IWebElement>> lstContact = new List<KeyValuePair<int, IWebElement>>();
             try
             {
@@ -198,11 +210,13 @@ namespace Client.Automation
                 Log.Error(ex.Message);
                 Console.WriteLine(ex.Message);
             }
+            _isBusySomeTaks = false;
             return lstContact;
         }
 
         public async Task<bool> SendWhatsappMess(string contactName, string chatMessage, string[] fileContents)
         {
+            _isBusySomeTaks = true;
             try
             {
                 //Try to find contact
@@ -274,12 +288,14 @@ namespace Client.Automation
                                 chatboxElm.SendKeys(chatMessage);
                                 chatboxElm.SendKeys(Keys.Return);
                             }
+                            _isBusySomeTaks = false;
                             return true;
                         }
                         catch (Exception ex)
                         {
                             Console.WriteLine(ex.Message);
                             Log.Error(ex.Message);
+                            _isBusySomeTaks = false;
                             return false;
                         }
                     }
@@ -289,18 +305,20 @@ namespace Client.Automation
                 Log.Error(ex.Message);
                 Console.WriteLine(ex.Message);
             }
+            _isBusySomeTaks = false;
             return false;
         }
 
         public async Task<bool> SendWhatsappMessByFindingContact(string contactName, string chatMessage, string[] fileContents)
         {
+            _isBusySomeTaks = true;
             //Click on chat icon
             Driver.FindElement(By.CssSelector("div[title='New chat']")).Click();
-            await Task.Delay(500);
+            await Task.Delay(300);
             //Find contact
             var searchBoxElm = Driver.FindElement(By.CssSelector("input[class='jN-F5 copyable-text selectable-text']"));
             searchBoxElm.SendKeys(contactName);
-            await Task.Delay(500);
+            await Task.Delay(300);
             var contactList = Driver.FindElements(By.CssSelector("div[class='_2wP_Y']"));
             for (int i = 0;i<contactList.Count;i++)
             {
@@ -343,11 +361,11 @@ namespace Client.Automation
                             }
                             //Append image
                             await OpenLocalFile(filePath.ToArray());
-                            await Task.Delay(500);
+                            await Task.Delay(100);
                             var chatboxElm = Driver.FindElement(By.CssSelector("div[class='_2S1VP copyable-text selectable-text']"));
                             //Console.WriteLine("Chat box found");
                             chatboxElm.SendKeys(Keys.Enter);
-                            await Task.Delay(2000);
+                            await Task.Delay(1000);
                             chatboxElm = Driver.FindElement(By.CssSelector("div[class='_2S1VP copyable-text selectable-text']"));
                             chatboxElm.SendKeys(chatMessage);
                             await Task.Delay(500);
@@ -366,17 +384,20 @@ namespace Client.Automation
                             chatboxElm.SendKeys(chatMessage);
                             chatboxElm.SendKeys(Keys.Return);
                         }
+                        _isBusySomeTaks = false;
                         return true;
                     }
                     catch (Exception ex)
                     {
                         Log.Error(ex.Message);
                         Console.WriteLine(ex.Message);
+                        _isBusySomeTaks = false;
                         return false;
                     }
                 }
 
             }
+            _isBusySomeTaks = false;
             return false;
         }
 
