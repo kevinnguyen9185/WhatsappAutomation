@@ -105,7 +105,7 @@ namespace Client.Automation
             {
                 Console.WriteLine("Taking screen shot");
                 string datetimeString = DateTime.Now.ToString("yyyyMMddHHmmss");
-                (Driver as RemoteWebDriver).GetScreenshot().SaveAsFile($"{Program.SharedSelFolder}/Screenshot_{datetimeString}.png",ScreenshotImageFormat.Png);
+                (Driver as RemoteWebDriver).GetScreenshot().SaveAsFile($"{Program.SharedSelFolder}/Robot_Screenshot/Screenshot_{datetimeString}.png",ScreenshotImageFormat.Png);
             }
         }
     }
