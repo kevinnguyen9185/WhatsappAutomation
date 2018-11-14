@@ -208,7 +208,7 @@ namespace Server.ServerSocket
                     }
                     break;
                 case "TakeRobotScreenShot":
-                    var takeSreenShotMess = JsonConvert.DeserializeObject<TakeRobotScreenShot>(mess.MessageType);
+                    var takeSreenShotMess = JsonConvert.DeserializeObject<TakeRobotScreenShot>(mess.Message);
                     robotConn = (ServerConnection)_serverSocketHandler.Connections.Find(p=>((ServerConnection)p).ConnectionId == takeSreenShotMess.Robotid);
                     if (robotConn!=null)
                     {
