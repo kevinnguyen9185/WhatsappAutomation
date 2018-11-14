@@ -32,6 +32,8 @@ namespace Client
         private static string _robotConnId = Guid.NewGuid().ToString();
         private static readonly AutoResetEvent _closing = new AutoResetEvent(false);
         private static string _baseWebsocketAddress = "localhost:5552";
+        //private static string _baseWebsocketAddress = "whatsappauto.net/wsapp";
+        private static string _scheme = "ws";
         public static string SharedSelFolder = "";
         static async Task Main(string[] args)
         {
@@ -80,7 +82,7 @@ namespace Client
             _chatPage = new ChatPage("WhatsApp");
             Console.WriteLine("Client started...");
             client.Options.SetBuffer(1024*1024, 1024*1024);
-            await client.ConnectAsync(new Uri($"ws://{_baseWebsocketAddress}/ServerSocket?connId={_robotConnId}&type=robot"), _cts.Token);
+            await client.ConnectAsync(new Uri($"{_scheme}://{_baseWebsocketAddress}/ServerSocket?connId={_robotConnId}&type=robot"), _cts.Token);
             var tReadMessage = ReadMessage(_cts.Token);
             var tCheckLoginStt = CheckLoginStatus(_cts.Token);
             await Task.WhenAll(tReadMessage, tCheckLoginStt);
@@ -207,7 +209,7 @@ namespace Client
             {
                 case "GetQRCodeMessage":
                     //Get QR code and return
-                    if(!_chatPage.IsLogin)
+                    if(!_chatPage.IsLogin && !_chatPage.IsBusy)
                     {
                         var imgContent = _langdingPage.QRCode;
                         await SendMessageAsync(Utils.CreateSendMessage<GetQRCodeResponseMessage>(
@@ -224,6 +226,7 @@ namespace Client
                     await ProcessErrorMessage(errMess.Message);
                     break;
                 case "ContactListMessage":
+                    if(_chatPage.IsBusy) break;
                     var contactCmd = JsonConvert.DeserializeObject<ContactListMessage>(receiveMessage.Message);
                     if(contactCmd.IsGetall)
                     {
@@ -251,6 +254,7 @@ namespace Client
                     }
                     break;
                 case "SendChatMessage":
+                    if(_chatPage.IsBusy) break;
                     var sendchatMessage = JsonConvert.DeserializeObject<SendChatMessage>(receiveMessage.Message);
                     var isSent = false;
                     if(_chatPage.IsLogin)
@@ -266,6 +270,9 @@ namespace Client
                         new SendChatResponseMessage(){IsSent=isSent, ContactName = sendchatMessage.ContactName},
                         "robot"
                     ));
+                    break;
+                case "TakeRobotScreenShot":
+                    await _chatPage.TakeScreenShot();
                     break;
                 default:
                     break;

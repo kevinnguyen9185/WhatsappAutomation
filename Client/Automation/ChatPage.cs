@@ -23,6 +23,13 @@ namespace Client.Automation
         private const string Local_Images_Folder = "/tmp/robot_images";
         private bool _isBusySomeTaks = false;
         private bool _isLogin = false;
+        public bool IsBusy 
+        { 
+            get 
+            { 
+                return _isBusySomeTaks ;
+            }
+        }
         public bool IsLogin 
         { 
             get

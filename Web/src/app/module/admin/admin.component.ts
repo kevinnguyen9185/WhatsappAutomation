@@ -64,6 +64,11 @@ export class AdminComponent implements OnInit {
     }
   }
 
+  takeScreenShot(){
+    this.robotServide.sendMessage(null, 'TakeRobotScreenShot', 'admin');
+    alert('Login to server to see images');
+  }
+
   changePassword(user:any){
     var newpwd =(<HTMLInputElement>document.getElementById(`password${user.id}`)).value;
     var confirmpwd = (<HTMLInputElement>document.getElementById(`confirmpassword${user.id}`)).value;

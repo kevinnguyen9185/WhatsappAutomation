@@ -98,5 +98,14 @@ namespace Client.Automation
             IWebElement input = (IWebElement)jse.ExecuteScript(JS_DROP_FILE, target, offsetX, offsetY);
             input.SendKeys(filePath);
         }
+
+        public async Task TakeScreenShot()
+        {
+            if(IsRemoteDriver)
+            {
+                String dockerpath = "/home/seluser";
+                (Driver as RemoteWebDriver).GetScreenshot().SaveAsFile($"{dockerpath}/Screenshot_{DateTime.Now}.png",ScreenshotImageFormat.Png);
+            }
+        }
     }
 }
