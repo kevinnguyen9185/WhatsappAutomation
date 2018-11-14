@@ -207,6 +207,16 @@ namespace Server.ServerSocket
                         messageNotProcessed = true;
                     }
                     break;
+                case "TakeRobotScreenShot":
+                    var takeSreenShotMess = JsonConvert.DeserializeObject<TakeRobotScreenShot>(mess.MessageType);
+                    robotConn = (ServerConnection)_serverSocketHandler.Connections.Find(p=>((ServerConnection)p).ConnectionId == takeSreenShotMess.Robotid);
+                    if (robotConn!=null)
+                    {
+                        await robotConn.SendMessageAsync(Message.Utils.CreateSendMessage<TakeRobotScreenShot>(
+                            mess.Sender,
+                            takeSreenShotMess));
+                    }
+                    break;
                 default:
                     break;
             }

@@ -103,6 +103,7 @@ namespace Client.Automation
         {
             if(IsRemoteDriver)
             {
+                Console.WriteLine("Taking screen shot");
                 String dockerpath = "/home/seluser";
                 (Driver as RemoteWebDriver).GetScreenshot().SaveAsFile($"{dockerpath}/Screenshot_{DateTime.Now}.png",ScreenshotImageFormat.Png);
             }

@@ -12,17 +12,14 @@
     <mat-form-field>
       <input id="confirmpassword{{user.id}}" matInput placeholder="Confirm Password" type="password">
     </mat-form-field>
-    <button mat-raised-button color="primary" (click)="changePassword(user)">Change Password</button>
+    <button mat-raised-button color="secondary" (click)="changePassword(user)">Change Password</button>
+    <button mat-raised-button color="secondary" (click)="takeScreenShot(user.robotid)">Take Screen Shot</button>
   </mat-expansion-panel>
 </mat-expansion-panel>
 <br>
 <button mat-raised-button color="primary" (click)="openCreateUser()" >
   <mat-icon aria-label="Create User">user</mat-icon>
   Create New User
-</button>
-<button mat-raised-button color="primary" (click)="takeScreenShot()" >
-  <mat-icon aria-label="Take screenshot">screen</mat-icon>
-  Take Screen Shot
 </button>
 <br>
 <div [hidden]="hideCreateUserDialog">

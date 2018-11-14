@@ -64,9 +64,9 @@ export class AdminComponent implements OnInit {
     }
   }
 
-  takeScreenShot(){
-    this.robotServide.sendMessage(null, 'TakeRobotScreenShot', 'admin');
-    alert('Login to server to see images');
+  takeScreenShot(robotid:string){
+    this.robotServide.sendMessage(<any>{robotid:robotid}, 'TakeRobotScreenShot', 'admin');
+    alert(`Login to server to see images of ${robotid}`);
   }
 
   changePassword(user:any){
