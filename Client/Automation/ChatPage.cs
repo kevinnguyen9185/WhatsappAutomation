@@ -319,102 +319,110 @@ namespace Client.Automation
 
         public async Task<bool> SendWhatsappMessByFindingContact(string contactName, string chatMessage, string[] fileContents)
         {
-            Console.WriteLine($"Send mess to {contactName}");
-            _isBusySomeTaks = true;
-            //Check if need to click on go back button
-            var goBackButtonElms =  Driver.FindElements(By.CssSelector("button[class='_1aTxu']"));
-            if(goBackButtonElms.Count>0)
+            try
             {
-                goBackButtonElms[0].Click();
-                await Task.Delay(100);
-            }
-            //Click on chat icon
-            //WaitForElementExisted("div[title='New chat']").Click();
-            //Find contact
-            var searchBoxElm = Driver.FindElement(By.CssSelector("input[class='jN-F5 copyable-text selectable-text']"));
-            searchBoxElm.Clear();
-            searchBoxElm.SendKeys(contactName);
-            await Task.Delay(1000);
-            //WaitForElementExisted("div[class='_2wP_Y']");
-            var contactList = await FindContactListContainer(5, 0);
-            for (int i = 0;i<contactList.Count;i++)
-            {
-                var contactElm = contactList[i];
-                var htmlContent = contactElm.GetAttribute("innerHTML");
-                if(htmlContent.Contains(contactName))
+                Console.WriteLine($"Send mess to {contactName}");
+                _isBusySomeTaks = true;
+                //Check if need to click on go back button
+                var goBackButtonElms =  Driver.FindElements(By.CssSelector("button[class='_1aTxu']"));
+                if(goBackButtonElms.Count>0)
                 {
-                    contactElm.Click();
-                    await Task.Delay(300);
-                    try
+                    goBackButtonElms[0].Click();
+                    await Task.Delay(100);
+                }
+                //Click on chat icon
+                //WaitForElementExisted("div[title='New chat']").Click();
+                //Find contact
+                var searchBoxElm = Driver.FindElement(By.CssSelector("input[class='jN-F5 copyable-text selectable-text']"));
+                searchBoxElm.Clear();
+                searchBoxElm.SendKeys(contactName);
+                await Task.Delay(1000);
+                //WaitForElementExisted("div[class='_2wP_Y']");
+                var contactList = await FindContactListContainer(5, 0);
+                for (int i = 0;i<contactList.Count;i++)
+                {
+                    var contactElm = contactList[i];
+                    var htmlContent = contactElm.GetAttribute("innerHTML");
+                    if(htmlContent.Contains(contactName))
                     {
-                        if(fileContents.Length > 0)
+                        contactElm.Click();
+                        await Task.Delay(300);
+                        try
                         {
-                            List<string> filePath= new List<string>();
-                            //Save file to local disk
-                            for (int j = 0;j<fileContents.Length;j++)
+                            if(fileContents.Length > 0)
                             {
-                                //If file item is filepath
-                                var filecontent = fileContents[j];
-                                var outGuidResult = Guid.Empty;
-                                Guid.TryParse(filecontent.Replace(".png",""), out outGuidResult);
-                                if(outGuidResult!=Guid.Empty)
+                                List<string> filePath= new List<string>();
+                                //Save file to local disk
+                                for (int j = 0;j<fileContents.Length;j++)
                                 {
-                                    String hostpath = Path.Combine(GetSelSharedFolder(), "robot_images");
-                                    if(IsRemoteDriver)
+                                    //If file item is filepath
+                                    var filecontent = fileContents[j];
+                                    var outGuidResult = Guid.Empty;
+                                    Guid.TryParse(filecontent.Replace(".png",""), out outGuidResult);
+                                    if(outGuidResult!=Guid.Empty)
                                     {
-                                        filePath.Add(Path.Combine(Docker_Images_Folder, filecontent));
+                                        String hostpath = Path.Combine(GetSelSharedFolder(), "robot_images");
+                                        if(IsRemoteDriver)
+                                        {
+                                            filePath.Add(Path.Combine(Docker_Images_Folder, filecontent));
+                                        }
+                                        else
+                                        {
+                                            filePath.Add(Path.Combine(hostpath, filecontent));
+                                        }
                                     }
                                     else
                                     {
-                                        filePath.Add(Path.Combine(hostpath, filecontent));
+                                        var fileItem =await SaveBase64ToLocal(filecontent);
+                                        filePath.Add(fileItem);
+                                        Console.WriteLine($"Temp file saved {fileItem}");
                                     }
                                 }
-                                else
-                                {
-                                    var fileItem =await SaveBase64ToLocal(filecontent);
-                                    filePath.Add(fileItem);
-                                    Console.WriteLine($"Temp file saved {fileItem}");
-                                }
+                                //Append image
+                                await OpenLocalFile(filePath.ToArray());
+                                await Task.Delay(100);
+                                var chatboxElm = Driver.FindElement(By.CssSelector("div[class='_2S1VP copyable-text selectable-text']"));
+                                //Console.WriteLine("Chat box found");
+                                chatboxElm.SendKeys(Keys.Enter);
+                                await Task.Delay(500);
+                                chatboxElm = Driver.FindElement(By.CssSelector("div[class='_2S1VP copyable-text selectable-text']"));
+                                chatboxElm.SendKeys(chatMessage);
+                                chatboxElm.SendKeys(Keys.Enter);
+                                //_3hV1n yavlE
+                                // var sendWithImgBut = Driver.FindElementByCssSelector("div[class='_3hV1n yavlE']");
+                                // //Console.WriteLine("Found button and click");
+                                // sendWithImgBut.Click();
+                                //Driver.GetScreenshot().SaveAsFile($"/Users/kevinng/Ansarada/Selenium_docker/Chuanbigui_{Guid.NewGuid().ToString()}.png",ScreenshotImageFormat.Png);
+                                
                             }
-                            //Append image
-                            await OpenLocalFile(filePath.ToArray());
-                            await Task.Delay(100);
-                            var chatboxElm = Driver.FindElement(By.CssSelector("div[class='_2S1VP copyable-text selectable-text']"));
-                            //Console.WriteLine("Chat box found");
-                            chatboxElm.SendKeys(Keys.Enter);
-                            await Task.Delay(500);
-                            chatboxElm = Driver.FindElement(By.CssSelector("div[class='_2S1VP copyable-text selectable-text']"));
-                            chatboxElm.SendKeys(chatMessage);
-                            chatboxElm.SendKeys(Keys.Enter);
-                            //_3hV1n yavlE
-                            // var sendWithImgBut = Driver.FindElementByCssSelector("div[class='_3hV1n yavlE']");
-                            // //Console.WriteLine("Found button and click");
-                            // sendWithImgBut.Click();
-                            //Driver.GetScreenshot().SaveAsFile($"/Users/kevinng/Ansarada/Selenium_docker/Chuanbigui_{Guid.NewGuid().ToString()}.png",ScreenshotImageFormat.Png);
-                            
+                            else
+                            {
+                                var chatboxElm = Driver.FindElement(By.CssSelector("div[class='_2S1VP copyable-text selectable-text']"));
+                                //Append text
+                                chatboxElm.SendKeys(chatMessage);
+                                chatboxElm.SendKeys(Keys.Return);
+                            }
+                            _isBusySomeTaks = false;
+                            return true;
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            var chatboxElm = Driver.FindElement(By.CssSelector("div[class='_2S1VP copyable-text selectable-text']"));
-                            //Append text
-                            chatboxElm.SendKeys(chatMessage);
-                            chatboxElm.SendKeys(Keys.Return);
+                            Log.Error(ex.Message);
+                            Console.WriteLine(ex.Message);
+                            _isBusySomeTaks = false;
+                            return false;
                         }
-                        _isBusySomeTaks = false;
-                        return true;
                     }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex.Message);
-                        Console.WriteLine(ex.Message);
-                        _isBusySomeTaks = false;
-                        return false;
-                    }
-                }
 
+                }
+                _isBusySomeTaks = false;
+                return false;
             }
-            _isBusySomeTaks = false;
-            return false;
+            catch(Exception ex)
+            {
+                _isBusySomeTaks = false;
+                return false;
+            }
         }
 
         private async Task<ReadOnlyCollection<IWebElement>> FindContactListContainer(int totalWait, int noWait)
